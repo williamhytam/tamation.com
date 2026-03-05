@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4A6FA5"/>
+      <stop offset="100%" stop-color="#2B4570"/>
+    </linearGradient>
+  </defs>
+  <circle cx="100" cy="100" r="92" fill="url(#bg)"/>
+  <circle cx="100" cy="100" r="92" fill="none" stroke="#6B8FC4" stroke-width="3" opacity="0.4"/>
+  <text x="100" y="138" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif" font-size="110" font-weight="700" fill="#FFFFFF" letter-spacing="-4">T</text>
+</svg>

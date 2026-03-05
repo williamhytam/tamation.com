@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Points Cost Basis Calculator</title>
+  <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @media (max-width: 640px) {
+      nav {
+        padding: 12px 16px 12px !important;
+        height: auto !important;
+      }
+      /* Stack the 12-col grid rows vertically on mobile */
+      .mobile-stack {
+        grid-template-columns: 1fr !important;
+      }
+      .mobile-stack > * {
+        grid-column: span 1 !important;
+      }
+    }
+  </style>
+</head>
+<body style="margin:0;background:#0f172a;">
+  <nav style="max-width:1400px;margin:0 auto;padding:20px 40px 16px;display:flex;align-items:center;height:56px;"><a href="/" style="color:#555;text-decoration:none;font-size:14px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;display:inline-flex;align-items:center;gap:6px;transition:color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#555'">← Tamation</a></nav>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useMemo, useEffect } = React;
+
+    function CashbackComparison({ 
+      totalCardSpend, totalPoints, totalOpportunityCost, signOnBonusPoints,
+      signOnBonusCost, purchasedPointsCost, redemptionCentsPerPoint,
+      weightedCostBasis, opportunityCostRate, formatNumber, formatCents 
+    }) {
+      const [cashbackRate, setCashbackRate] = useState(opportunityCostRate || 2);
+      const [pointValuation, setPointValuation] = useState(0.5);
+
+      useEffect(() => { setCashbackRate(opportunityCostRate); }, [opportunityCostRate]);
+
+      const comparison = useMemo(() => {
+        const cashbackEarned = totalCardSpend * (cashbackRate / 100);
+        const effectiveValuation = redemptionCentsPerPoint > 0 ? redemptionCentsPerPoint : pointValuation;
+        const pointsValue = (totalPoints * effectiveValuation) / 100;
+        const extraCostsForPoints = signOnBonusCost + purchasedPointsCost;
+        const netPointsValue = pointsValue - extraCostsForPoints;
+        const netGainFromPoints = netPointsValue - cashbackEarned;
+        const breakEvenCpp = totalPoints > 0 ? ((cashbackEarned + extraCostsForPoints) * 100) / totalPoints : 0;
+        return { cashbackEarned, effectiveValuation, pointsValue, extraCostsForPoints, netPointsValue, netGainFromPoints, breakEvenCpp };
+      }, [totalCardSpend, totalPoints, cashbackRate, pointValuation, redemptionCentsPerPoint, signOnBonusCost, purchasedPointsCost]);
+
+      if (totalCardSpend === 0) return null;
+      const isUsingRedemptionValue = redemptionCentsPerPoint > 0;
+      const pointsWin = comparison.netGainFromPoints >= 0;
+
+      return (
+        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
+          <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">💰 Cashback Comparison</h2>
+          <p className="text-purple-300 text-sm mb-4">Compare your points strategy against a simple cashback card</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div>
+              <label className="text-purple-300 text-sm block mb-1">Cashback Card Rate</label>
+              <div className="flex items-center gap-2">
+                <input type="number" value={cashbackRate || ''} onChange={(e) => setCashbackRate(parseFloat(e.target.value) || 0)} step="0.5" min="0" max="10" className="w-24 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-center" />
+                <span className="text-purple-300">%</span>
+                <div className="flex gap-1 ml-2">
+                  {[1.5, 2, 2.5, 3].map(rate => (
+                    <button key={rate} onClick={() => setCashbackRate(rate)} className={`px-2 py-1 rounded text-xs transition ${cashbackRate === rate ? 'bg-purple-500 text-white' : 'bg-white/10 text-purple-300 hover:bg-white/20'}`}>{rate}%</button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div>
+              <label className="text-purple-300 text-sm block mb-1">Point Valuation {isUsingRedemptionValue && <span className="text-green-400">(using your redemption)</span>}</label>
+              <div className="flex items-center gap-2">
+                <input type="number" value={isUsingRedemptionValue ? redemptionCentsPerPoint.toFixed(3) : (pointValuation || '')} onChange={(e) => !isUsingRedemptionValue && setPointValuation(parseFloat(e.target.value) || 0)} step="0.1" min="0" disabled={isUsingRedemptionValue} className={`w-24 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-center ${isUsingRedemptionValue ? 'opacity-60' : ''}`} />
+                <span className="text-purple-300">¢/pt</span>
+                {!isUsingRedemptionValue && (
+                  <div className="flex gap-1 ml-2">
+                    {[0.4, 0.5, 0.6, 0.7].map(val => (
+                      <button key={val} onClick={() => setPointValuation(val)} className={`px-2 py-1 rounded text-xs transition ${pointValuation === val ? 'bg-purple-500 text-white' : 'bg-white/10 text-purple-300 hover:bg-white/20'}`}>{val}¢</button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+            <div className="bg-blue-500/20 rounded-xl p-4 border border-blue-400/30">
+              <div className="text-blue-300 text-xs">Cashback Alternative</div>
+              <div className="text-2xl font-bold text-white">${formatNumber(comparison.cashbackEarned)}</div>
+              <div className="text-blue-400 text-xs">${formatNumber(totalCardSpend)} × {cashbackRate}%</div>
+            </div>
+            <div className="bg-purple-500/20 rounded-xl p-4 border border-purple-400/30">
+              <div className="text-purple-300 text-xs">Points Value</div>
+              <div className="text-2xl font-bold text-white">${formatNumber(comparison.pointsValue)}</div>
+              <div className="text-purple-400 text-xs">{formatNumber(totalPoints)} pts × {formatCents(comparison.effectiveValuation)}¢</div>
+            </div>
+            {comparison.extraCostsForPoints > 0 && (
+              <div className="bg-red-500/20 rounded-xl p-4 border border-red-400/30">
+                <div className="text-red-300 text-xs">Extra Costs (Purchases)</div>
+                <div className="text-2xl font-bold text-white">-${formatNumber(comparison.extraCostsForPoints)}</div>
+                <div className="text-red-400 text-xs">Cash paid for points</div>
+              </div>
+            )}
+            <div className={`rounded-xl p-4 border ${pointsWin ? 'bg-green-500/20 border-green-400/30' : 'bg-red-500/20 border-red-400/30'}`}>
+              <div className={`text-xs ${pointsWin ? 'text-green-300' : 'text-red-300'}`}>Net {pointsWin ? 'Gain' : 'Loss'} vs Cashback</div>
+              <div className={`text-2xl font-bold ${pointsWin ? 'text-green-400' : 'text-red-400'}`}>{pointsWin ? '+' : '-'}${formatNumber(Math.abs(comparison.netGainFromPoints))}</div>
+              <div className={`text-xs ${pointsWin ? 'text-green-400' : 'text-red-400'}`}>Points strategy {pointsWin ? 'wins! 🎉' : 'loses 😞'}</div>
+            </div>
+          </div>
+          <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+              <div><span className="text-purple-300 text-sm">Break-even valuation: </span><span className="text-white font-semibold">{formatCents(comparison.breakEvenCpp)}¢/pt</span></div>
+              <div className="text-purple-400 text-sm">
+                {comparison.effectiveValuation > comparison.breakEvenCpp
+                  ? <span className="text-green-400">✅ Your valuation ({formatCents(comparison.effectiveValuation)}¢) beats break-even</span>
+                  : <span className="text-red-400">⚠️ You need &gt;{formatCents(comparison.breakEvenCpp)}¢/pt to beat {cashbackRate}% cashback</span>}
+              </div>
+            </div>
+          </div>
+          <div className="mt-4 text-purple-300 text-sm">
+            <strong>💡 Insight:</strong> {signOnBonusPoints > 0
+              ? <>Your sign-on bonus adds {formatNumber(signOnBonusPoints)} points of "bonus value" that you wouldn't get with cashback. This significantly tips the scale in favor of points.</>
+              : <>Add a sign-on bonus above to see how it impacts the comparison. Sign-on bonuses are often the key to making points more valuable than cashback.</>}
+          </div>
+        </div>
+      );
+    }
+
+    function PointsCalculator() {
+      const [ihgCardEarnings, setIhgCardEarnings] = useState([
+        { category: 'Base Spending (3x)', multiplier: 3, pointsEarned: 0 },
+        { category: 'Dining (5x)', multiplier: 5, pointsEarned: 0 },
+        { category: 'Travel (5x)', multiplier: 5, pointsEarned: 0 },
+      ]);
+      const [chaseCardEarnings, setChaseCardEarnings] = useState([
+        { category: 'Base Spending (1x)', multiplier: 1, pointsEarned: 0 },
+        { category: 'Travel (3x)', multiplier: 3, pointsEarned: 0 },
+      ]);
+      const [transferBonus, setTransferBonus] = useState(70);
+      const [opportunityCostRate, setOpportunityCostRate] = useState(2);
+      const [signOnBonus, setSignOnBonus] = useState({ points: 0, attributedCost: 0 });
+      const [purchasedPoints, setPurchasedPoints] = useState([{ description: 'BOGO Promotion', pointsReceived: 0, amountPaid: 0 }]);
+      const [redemptionValue, setRedemptionValue] = useState({ nightCost: 0, pointsRequired: 0 });
+
+      const calculations = useMemo(() => {
+        const ihgCardData = ihgCardEarnings.map(cat => {
+          const impliedSpend = cat.multiplier > 0 ? cat.pointsEarned / cat.multiplier : 0;
+          const ihgPoints = cat.pointsEarned;
+          const foregoneCashback = impliedSpend * (opportunityCostRate / 100);
+          const costBasis = ihgPoints > 0 ? (foregoneCashback * 100) / ihgPoints : 0;
+          return { ...cat, impliedSpend, ihgPoints, foregoneCashback, costBasis };
+        });
+        const totalIhgCardPoints = ihgCardData.reduce((s, c) => s + c.ihgPoints, 0);
+        const totalIhgCardSpend = ihgCardData.reduce((s, c) => s + c.impliedSpend, 0);
+        const totalIhgCardForegone = ihgCardData.reduce((s, c) => s + c.foregoneCashback, 0);
+
+        const chaseCardData = chaseCardEarnings.map(cat => {
+          const impliedSpend = cat.multiplier > 0 ? cat.pointsEarned / cat.multiplier : 0;
+          const ihgPoints = cat.pointsEarned * (1 + transferBonus / 100);
+          const foregoneCashback = impliedSpend * (opportunityCostRate / 100);
+          const costBasis = ihgPoints > 0 ? (foregoneCashback * 100) / ihgPoints : 0;
+          return { ...cat, impliedSpend, ihgPoints, foregoneCashback, costBasis };
+        });
+        const totalChaseCardPoints = chaseCardData.reduce((s, c) => s + c.ihgPoints, 0);
+        const totalChaseCardSpend = chaseCardData.reduce((s, c) => s + c.impliedSpend, 0);
+        const totalChaseCardForegone = chaseCardData.reduce((s, c) => s + c.foregoneCashback, 0);
+        const totalChaseURPoints = chaseCardEarnings.reduce((s, c) => s + c.pointsEarned, 0);
+
+        const signOnCostBasis = signOnBonus.points > 0 ? (signOnBonus.attributedCost * 100) / signOnBonus.points : 0;
+
+        const purchasedData = purchasedPoints.map(p => ({ ...p, costBasis: p.pointsReceived > 0 ? (p.amountPaid * 100) / p.pointsReceived : 0 }));
+        const totalPurchasedPoints = purchasedData.reduce((s, p) => s + p.pointsReceived, 0);
+        const totalPurchasedCost = purchasedData.reduce((s, p) => s + p.amountPaid, 0);
+
+        const totalCardSpend = totalIhgCardSpend + totalChaseCardSpend;
+        const totalForegoneCashback = totalIhgCardForegone + totalChaseCardForegone;
+        const totalPoints = totalIhgCardPoints + totalChaseCardPoints + signOnBonus.points + totalPurchasedPoints;
+        const totalOpportunityCost = totalForegoneCashback + signOnBonus.attributedCost + totalPurchasedCost;
+        const weightedCostBasis = totalPoints > 0 ? (totalOpportunityCost * 100) / totalPoints : 0;
+
+        const redemptionCentsPerPoint = redemptionValue.pointsRequired > 0 ? (redemptionValue.nightCost * 100) / redemptionValue.pointsRequired : 0;
+        const netValuePerPoint = redemptionCentsPerPoint - weightedCostBasis;
+        const totalSavings = redemptionValue.nightCost - (weightedCostBasis * redemptionValue.pointsRequired / 100);
+        const roi = weightedCostBasis > 0 ? ((redemptionCentsPerPoint / weightedCostBasis) - 1) * 100 : 0;
+
+        return { ihgCardData, totalIhgCardPoints, totalIhgCardSpend, totalIhgCardForegone, chaseCardData, totalChaseCardPoints, totalChaseCardSpend, totalChaseCardForegone, totalChaseURPoints, signOnCostBasis, purchasedData, totalPurchasedPoints, totalPurchasedCost, totalCardSpend, totalForegoneCashback, totalPoints, totalOpportunityCost, weightedCostBasis, redemptionCentsPerPoint, netValuePerPoint, totalSavings, roi };
+      }, [ihgCardEarnings, chaseCardEarnings, transferBonus, opportunityCostRate, signOnBonus, purchasedPoints, redemptionValue]);
+
+      const updateIhgCardEarnings = (index, field, value) => { const u = [...ihgCardEarnings]; u[index] = { ...u[index], [field]: field === 'category' ? value : (parseFloat(value) || 0) }; setIhgCardEarnings(u); };
+      const addIhgCategory = () => setIhgCardEarnings([...ihgCardEarnings, { category: 'New Category', multiplier: 3, pointsEarned: 0 }]);
+      const removeIhgCategory = (i) => setIhgCardEarnings(ihgCardEarnings.filter((_, idx) => idx !== i));
+      const updateChaseCardEarnings = (index, field, value) => { const u = [...chaseCardEarnings]; u[index] = { ...u[index], [field]: field === 'category' ? value : (parseFloat(value) || 0) }; setChaseCardEarnings(u); };
+      const addChaseCategory = () => setChaseCardEarnings([...chaseCardEarnings, { category: 'New Category', multiplier: 1, pointsEarned: 0 }]);
+      const removeChaseCategory = (i) => setChaseCardEarnings(chaseCardEarnings.filter((_, idx) => idx !== i));
+      const updatePurchased = (index, field, value) => { const u = [...purchasedPoints]; u[index] = { ...u[index], [field]: field === 'description' ? value : (parseFloat(value) || 0) }; setPurchasedPoints(u); };
+      const addPurchase = () => setPurchasedPoints([...purchasedPoints, { description: 'New Purchase', pointsReceived: 0, amountPaid: 0 }]);
+      const removePurchase = (i) => setPurchasedPoints(purchasedPoints.filter((_, idx) => idx !== i));
+
+      const formatNumber = (num) => num.toLocaleString('en-US', { maximumFractionDigits: 2 });
+      const formatCents = (num) => num.toFixed(3);
+
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4 md:p-8">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-8">
+              <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Points Cost Basis Calculator</h1>
+              <p className="text-purple-300">Calculate your true cents-per-point across all acquisition channels</p>
+            </div>
+
+            {/* IHG Co-branded Card */}
+            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold text-white flex items-center gap-2">🏨 IHG Co-branded Card (Direct IHG Points)</h2>
+                <button onClick={addIhgCategory} className="px-3 py-1 bg-purple-500 hover:bg-purple-600 text-white rounded-lg text-sm transition">+ Add Category</button>
+              </div>
+              <p className="text-purple-300 text-sm mb-4">Points earned go directly to IHG — no transfer bonus applies.</p>
+              <div className="space-y-3">
+                {ihgCardEarnings.map((cat, index) => (
+                  <div key={index} className="grid grid-cols-12 gap-2 items-center mobile-stack">
+                    <input type="text" value={cat.category} onChange={(e) => updateIhgCardEarnings(index, 'category', e.target.value)} className="col-span-4 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm" />
+                    <div className="col-span-2 flex items-center gap-1">
+                      <input type="number" value={cat.multiplier || ''} onChange={(e) => updateIhgCardEarnings(index, 'multiplier', e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-2 text-white text-sm text-center" min="1" />
+                      <span className="text-purple-300 text-sm">x</span>
+                    </div>
+                    <div className="col-span-4 flex items-center gap-1">
+                      <input type="number" value={cat.pointsEarned || ''} onChange={(e) => updateIhgCardEarnings(index, 'pointsEarned', e.target.value)} placeholder="Points earned" className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm" />
+                      <span className="text-purple-300 text-xs">pts</span>
+                    </div>
+                    <div className="col-span-2 flex justify-end">
+                      {ihgCardEarnings.length > 1 && <button onClick={() => removeIhgCategory(index)} className="text-red-400 hover:text-red-300 text-xl">×</button>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {calculations.totalIhgCardPoints > 0 && (
+                <div className="mt-4 pt-4 border-t border-white/10">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {calculations.ihgCardData.filter(c => c.pointsEarned > 0).map((cat, i) => (
+                      <div key={i} className="bg-white/5 rounded-lg p-3">
+                        <div className="text-purple-300 text-xs">{cat.category}</div>
+                        <div className="text-white font-semibold">{formatNumber(cat.ihgPoints)} IHG pts</div>
+                        <div className="text-purple-400 text-xs">Spend: ${formatNumber(cat.impliedSpend)} → Foregone: ${formatNumber(cat.foregoneCashback)}</div>
+                        <div className="text-green-400 text-sm">{formatCents(cat.costBasis)}¢/pt</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Chase UR Card */}
+            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-blue-400/30">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold text-white flex items-center gap-2">💳 Chase Ultimate Rewards (Transferred to IHG)</h2>
+                <button onClick={addChaseCategory} className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm transition">+ Add Category</button>
+              </div>
+              <p className="text-blue-300 text-sm mb-4">Chase UR points transferred to IHG with the transfer bonus applied.</p>
+              <div className="space-y-3">
+                {chaseCardEarnings.map((cat, index) => (
+                  <div key={index} className="grid grid-cols-12 gap-2 items-center mobile-stack">
+                    <input type="text" value={cat.category} onChange={(e) => updateChaseCardEarnings(index, 'category', e.target.value)} className="col-span-4 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm" />
+                    <div className="col-span-2 flex items-center gap-1">
+                      <input type="number" value={cat.multiplier || ''} onChange={(e) => updateChaseCardEarnings(index, 'multiplier', e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-2 text-white text-sm text-center" min="1" />
+                      <span className="text-blue-300 text-sm">x</span>
+                    </div>
+                    <div className="col-span-4 flex items-center gap-1">
+                      <input type="number" value={cat.pointsEarned || ''} onChange={(e) => updateChaseCardEarnings(index, 'pointsEarned', e.target.value)} placeholder="UR points" className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm" />
+                      <span className="text-blue-300 text-xs">UR</span>
+                    </div>
+                    <div className="col-span-2 flex justify-end">
+                      {chaseCardEarnings.length > 1 && <button onClick={() => removeChaseCategory(index)} className="text-red-400 hover:text-red-300 text-xl">×</button>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-6 pt-4 border-t border-white/10">
+                <label className="flex items-center gap-3 flex-wrap">
+                  <span className="text-blue-300">Transfer Bonus:</span>
+                  <input type="number" value={transferBonus || ''} onChange={(e) => setTransferBonus(parseFloat(e.target.value) || 0)} className="w-20 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm text-center" />
+                  <span className="text-blue-300">%</span>
+                  <span className="text-blue-400 text-sm ml-2">({formatNumber(calculations.totalChaseURPoints)} UR → {formatNumber(calculations.totalChaseCardPoints)} IHG)</span>
+                </label>
+              </div>
+              {calculations.totalChaseCardPoints > 0 && (
+                <div className="mt-4 pt-4 border-t border-white/10">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {calculations.chaseCardData.filter(c => c.pointsEarned > 0).map((cat, i) => (
+                      <div key={i} className="bg-blue-500/10 rounded-lg p-3">
+                        <div className="text-blue-300 text-xs">{cat.category}</div>
+                        <div className="text-white font-semibold">{formatNumber(cat.pointsEarned)} UR → {formatNumber(cat.ihgPoints)} IHG</div>
+                        <div className="text-blue-400 text-xs">Spend: ${formatNumber(cat.impliedSpend)} → Foregone: ${formatNumber(cat.foregoneCashback)}</div>
+                        <div className="text-green-400 text-sm">{formatCents(cat.costBasis)}¢/pt</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Opportunity Cost */}
+            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
+              <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">📊 Opportunity Cost Setting</h2>
+              <p className="text-purple-300 text-sm mb-4">The cashback rate you'd get with an alternative card.</p>
+              <label className="flex items-center gap-3 flex-wrap">
+                <span className="text-purple-300">Alternative Cashback Rate:</span>
+                <input type="number" value={opportunityCostRate || ''} onChange={(e) => setOpportunityCostRate(parseFloat(e.target.value) || 0)} step="0.5" className="w-20 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm text-center" />
+                <span className="text-purple-300">%</span>
+                <div className="flex gap-1 ml-2">
+                  {[1.5, 2, 2.5, 3].map(rate => (
+                    <button key={rate} onClick={() => setOpportunityCostRate(rate)} className={`px-2 py-1 rounded text-xs transition ${opportunityCostRate === rate ? 'bg-purple-500 text-white' : 'bg-white/10 text-purple-300 hover:bg-white/20'}`}>{rate}%</button>
+                  ))}
+                </div>
+              </label>
+            </div>
+
+            {/* Sign-On Bonus */}
+            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
+              <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">🎁 Sign-On Bonus (Direct IHG Points)</h2>
+              <p className="text-purple-300 text-sm mb-4">Enter sign-on bonus points from an IHG co-branded card.</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-purple-300 text-sm block mb-1">Bonus Points (IHG)</label>
+                  <div className="flex items-center gap-1">
+                    <input type="number" value={signOnBonus.points || ''} onChange={(e) => setSignOnBonus({...signOnBonus, points: parseFloat(e.target.value) || 0})} placeholder="e.g., 140000" className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white" />
+                    <span className="text-purple-300 text-sm">pts</span>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-purple-300 text-sm block mb-1">Attributed Cost (optional)</label>
+                  <div className="flex items-center gap-1">
+                    <span className="text-purple-300">$</span>
+                    <input type="number" value={signOnBonus.attributedCost || ''} onChange={(e) => setSignOnBonus({...signOnBonus, attributedCost: parseFloat(e.target.value) || 0})} placeholder="e.g., 95 (annual fee)" className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white" />
+                  </div>
+                </div>
+              </div>
+              {signOnBonus.points > 0 && (
+                <div className="mt-4 bg-white/5 rounded-lg p-3 inline-block">
+                  <div className="text-purple-300 text-xs">Direct IHG Points</div>
+                  <div className="text-white font-semibold">{formatNumber(signOnBonus.points)} IHG pts</div>
+                  <div className="text-green-400 text-sm">{signOnBonus.attributedCost > 0 ? `${formatCents(calculations.signOnCostBasis)}¢/pt` : 'FREE (0¢/pt)'}</div>
+                </div>
+              )}
+            </div>
+
+            {/* Purchased Points */}
+            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/20">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold text-white flex items-center gap-2">🛒 Purchased Points</h2>
+                <button onClick={addPurchase} className="px-3 py-1 bg-purple-500 hover:bg-purple-600 text-white rounded-lg text-sm transition">+ Add Purchase</button>
+              </div>
+              <p className="text-purple-300 text-sm mb-4">Enter IHG points purchased directly.</p>
+              <div className="space-y-3">
+                {purchasedPoints.map((purchase, index) => (
+                  <div key={index} className="grid grid-cols-12 gap-2 items-center mobile-stack">
+                    <input type="text" value={purchase.description} onChange={(e) => updatePurchased(index, 'description', e.target.value)} className="col-span-4 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm" />
+                    <div className="col-span-3 flex items-center gap-1">
+                      <input type="number" value={purchase.pointsReceived || ''} onChange={(e) => updatePurchased(index, 'pointsReceived', e.target.value)} placeholder="Points" className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm" />
+                      <span className="text-purple-300 text-xs">pts</span>
+                    </div>
+                    <div className="col-span-3 flex items-center gap-1">
+                      <span className="text-purple-300">$</span>
+                      <input type="number" value={purchase.amountPaid || ''} onChange={(e) => updatePurchased(index, 'amountPaid', e.target.value)} placeholder="Paid" className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm" />
+                    </div>
+                    <div className="col-span-2 flex justify-end items-center gap-2">
+                      {purchase.pointsReceived > 0 && <span className="text-green-400 text-sm">{formatCents(calculations.purchasedData[index]?.costBasis || 0)}¢</span>}
+                      {purchasedPoints.length > 1 && <button onClick={() => removePurchase(index)} className="text-red-400 hover:text-red-300 text-xl">×</button>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Summary */}
+            <div className="bg-gradient-to-r from-purple-600/30 to-blue-600/30 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-purple-400/30">
+              <h2 className="text-xl font-semibold text-white mb-4">📊 Cost Basis Summary</h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                <div className="bg-white/10 rounded-xl p-4"><div className="text-purple-300 text-xs">IHG Card</div><div className="text-xl font-bold text-white">{formatNumber(calculations.totalIhgCardPoints)}</div><div className="text-purple-400 text-xs">${formatNumber(calculations.totalIhgCardForegone)} opp. cost</div></div>
+                <div className="bg-blue-500/20 rounded-xl p-4"><div className="text-blue-300 text-xs">Chase UR → IHG</div><div className="text-xl font-bold text-white">{formatNumber(calculations.totalChaseCardPoints)}</div><div className="text-blue-400 text-xs">${formatNumber(calculations.totalChaseCardForegone)} opp. cost</div></div>
+                <div className="bg-white/10 rounded-xl p-4"><div className="text-purple-300 text-xs">Sign-On Bonus</div><div className="text-xl font-bold text-white">{formatNumber(signOnBonus.points)}</div><div className="text-purple-400 text-xs">${formatNumber(signOnBonus.attributedCost)} cost</div></div>
+                <div className="bg-white/10 rounded-xl p-4"><div className="text-purple-300 text-xs">Purchased</div><div className="text-xl font-bold text-white">{formatNumber(calculations.totalPurchasedPoints)}</div><div className="text-purple-400 text-xs">${formatNumber(calculations.totalPurchasedCost)} paid</div></div>
+                <div className="bg-white/10 rounded-xl p-4"><div className="text-purple-300 text-xs">Total IHG Points</div><div className="text-xl font-bold text-white">{formatNumber(calculations.totalPoints)}</div><div className="text-purple-400 text-xs">all sources</div></div>
+                <div className="bg-white/10 rounded-xl p-4"><div className="text-purple-300 text-xs">Total Opp. Cost</div><div className="text-xl font-bold text-white">${formatNumber(calculations.totalOpportunityCost)}</div><div className="text-purple-400 text-xs">all sources</div></div>
+              </div>
+              {calculations.totalPoints > 0 && (
+                <div className="mt-6 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-xl p-6 border border-green-400/30">
+                  <div className="text-center">
+                    <div className="text-green-300 text-sm mb-1">Your Weighted Average Cost Basis</div>
+                    <div className="text-5xl font-bold text-white mb-2">{formatCents(calculations.weightedCostBasis)}¢</div>
+                    <div className="text-green-300">per IHG point</div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Redemption Value */}
+            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+              <h2 className="text-xl font-semibold text-white mb-4">🏨 Redemption Value Check</h2>
+              <p className="text-purple-300 text-sm mb-4">Enter a potential redemption to see if it's a good deal based on your cost basis</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                  <label className="text-purple-300 text-sm block mb-1">Cash Price of Room/Night</label>
+                  <div className="flex items-center gap-1">
+                    <span className="text-purple-300">$</span>
+                    <input type="number" value={redemptionValue.nightCost || ''} onChange={(e) => setRedemptionValue({...redemptionValue, nightCost: parseFloat(e.target.value) || 0})} placeholder="e.g., 250" className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white" />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-purple-300 text-sm block mb-1">Points Required</label>
+                  <input type="number" value={redemptionValue.pointsRequired || ''} onChange={(e) => setRedemptionValue({...redemptionValue, pointsRequired: parseFloat(e.target.value) || 0})} placeholder="e.g., 40000" className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white" />
+                </div>
+              </div>
+              {redemptionValue.pointsRequired > 0 && redemptionValue.nightCost > 0 && (
+                <>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="bg-white/10 rounded-xl p-4"><div className="text-purple-300 text-sm">Redemption Value</div><div className="text-2xl font-bold text-white">{formatCents(calculations.redemptionCentsPerPoint)}¢</div><div className="text-purple-400 text-sm">per point</div></div>
+                    <div className="bg-white/10 rounded-xl p-4"><div className="text-purple-300 text-sm">Your Cost</div><div className="text-2xl font-bold text-white">{formatCents(calculations.weightedCostBasis)}¢</div><div className="text-purple-400 text-sm">per point</div></div>
+                    <div className={`rounded-xl p-4 ${calculations.netValuePerPoint >= 0 ? 'bg-green-500/20' : 'bg-red-500/20'}`}><div className="text-purple-300 text-sm">Net Value</div><div className={`text-2xl font-bold ${calculations.netValuePerPoint >= 0 ? 'text-green-400' : 'text-red-400'}`}>{calculations.netValuePerPoint >= 0 ? '+' : ''}{formatCents(calculations.netValuePerPoint)}¢</div><div className="text-purple-400 text-sm">per point</div></div>
+                    <div className={`rounded-xl p-4 ${calculations.totalSavings >= 0 ? 'bg-green-500/20' : 'bg-red-500/20'}`}><div className="text-purple-300 text-sm">Total Savings</div><div className={`text-2xl font-bold ${calculations.totalSavings >= 0 ? 'text-green-400' : 'text-red-400'}`}>${formatNumber(calculations.totalSavings)}</div><div className={`text-sm ${calculations.roi >= 0 ? 'text-green-400' : 'text-red-400'}`}>{calculations.roi >= 0 ? '+' : ''}{formatNumber(calculations.roi)}% ROI</div></div>
+                  </div>
+                  <div className={`mt-4 p-4 rounded-xl text-center ${calculations.netValuePerPoint >= 0 ? 'bg-green-500/20 border border-green-400/30' : 'bg-red-500/20 border border-red-400/30'}`}>
+                    {calculations.netValuePerPoint >= 0
+                      ? <div className="text-green-300">✅ <strong>Good redemption!</strong> You're getting {formatCents(calculations.redemptionCentsPerPoint)}¢ per point when you only paid {formatCents(calculations.weightedCostBasis)}¢ per point.</div>
+                      : <div className="text-red-300">⚠️ <strong>Below cost basis.</strong> You're getting {formatCents(calculations.redemptionCentsPerPoint)}¢ per point but paid {formatCents(calculations.weightedCostBasis)}¢ per point. Consider paying cash instead.</div>}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Cashback Comparison */}
+            <div className="mt-6">
+              <CashbackComparison
+                totalCardSpend={calculations.totalCardSpend} totalPoints={calculations.totalPoints}
+                totalOpportunityCost={calculations.totalOpportunityCost} signOnBonusPoints={signOnBonus.points}
+                signOnBonusCost={signOnBonus.attributedCost} purchasedPointsCost={calculations.totalPurchasedCost}
+                redemptionCentsPerPoint={calculations.redemptionCentsPerPoint}
+                weightedCostBasis={calculations.weightedCostBasis} opportunityCostRate={opportunityCostRate}
+                formatNumber={formatNumber} formatCents={formatCents}
+              />
+            </div>
+
+            {/* Formula */}
+            <div className="mt-6 bg-white/5 rounded-xl p-4 border border-white/10">
+              <h3 className="text-purple-300 font-semibold mb-2">📐 How it works</h3>
+              <div className="text-purple-200 text-sm space-y-2">
+                <p><strong>Implied Spend:</strong> Points Earned ÷ Multiplier = $ Spent</p>
+                <p><strong>Foregone Cashback:</strong> $ Spent × Opportunity Cost Rate = True Cost</p>
+                <p><strong>IHG Card:</strong> Points earned = IHG Points (direct, no bonus)</p>
+                <p><strong>Chase UR Card:</strong> UR Points × (1 + Transfer Bonus%) = IHG Points</p>
+                <p><strong>Cost Basis:</strong> (Foregone Cashback × 100) ÷ IHG Points = Cents per Point</p>
+                <p><strong>Weighted Average:</strong> (Total Opportunity Cost × 100) ÷ Total IHG Points</p>
+                <p><strong>Redemption Value:</strong> (Cash Price × 100) ÷ Points Required = Cents per Point</p>
+              </div>
+              <div className="mt-4 p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/30">
+                <p className="text-yellow-200 text-sm"><strong>💡 Why opportunity cost?</strong> When you spend $1,000 on your points card, you're not "paying" $1,000 for points — you're buying goods/services. The true cost of those points is what you gave up: the cashback you would have earned with an alternative card.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<PointsCalculator />);
+  </script>
+</body>
+</html>

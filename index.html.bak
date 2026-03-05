@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tamation Inc — Software Tools</title>
+    <link rel="icon" type="image/svg+xml" href="/logo.svg">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            background: #0a0a0b;
+            color: #e8e8e8;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            padding: 3rem 1.5rem;
+            background-image:
+                radial-gradient(ellipse at 20% 0%, rgba(99, 102, 241, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 100%, rgba(16, 185, 129, 0.04) 0%, transparent 50%);
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            letter-spacing: -2px;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #fff 0%, #a5a5a5 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .tagline {
+            color: #555;
+            font-size: 1.15rem;
+            letter-spacing: 0.5px;
+        }
+        .section-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: #444;
+            margin-bottom: 1.25rem;
+            text-align: center;
+        }
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        .project-card {
+            display: block;
+            background: linear-gradient(145deg, #141416 0%, #0f0f10 100%);
+            border: 1px solid #222;
+            border-radius: 14px;
+            overflow: hidden;
+            text-decoration: none;
+            color: inherit;
+            transition: border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .project-card:hover {
+            border-color: #6366f1;
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(99, 102, 241, 0.15);
+        }
+        .project-preview {
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            background: #0d0d0e;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid #1a1a1c;
+        }
+        .preview-mock {
+            width: 85%;
+            height: 80%;
+            position: relative;
+        }
+        .mock-chart {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        .mock-chart svg {
+            width: 100%;
+            height: 100%;
+        }
+        .project-info {
+            padding: 16px 18px 20px;
+        }
+        .project-tag {
+            display: inline-block;
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #6366f1;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            padding: 3px 10px;
+            border-radius: 20px;
+            margin-bottom: 10px;
+        }
+        .project-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+        .project-desc {
+            font-size: 0.8rem;
+            color: #777;
+            line-height: 1.5;
+        }
+        .project-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 12px;
+            font-size: 0.75rem;
+            color: #6366f1;
+            font-weight: 500;
+        }
+        .project-cta svg {
+            transition: transform 0.2s ease;
+        }
+        .project-card:hover .project-cta svg {
+            transform: translateX(4px);
+        }
+        .empty-card {
+            border-style: dashed;
+            border-color: #1a1a1c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 280px;
+        }
+        .empty-card:hover {
+            border-color: #333;
+            transform: none;
+            box-shadow: none;
+            cursor: default;
+        }
+        .empty-text {
+            color: #2a2a2a;
+            font-size: 0.8rem;
+        }
+        footer {
+            text-align: center;
+            margin-top: 4rem;
+            font-size: 0.75rem;
+            color: #2a2a2a;
+        }
+        @media (max-width: 768px) {
+            .projects-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 480px) {
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <img src="/logo.svg" alt="Tamation" width="80" height="80" style="margin: 0 auto 1rem;">
+            <h1>Tamation</h1>
+            <p class="tagline">smart tools, built simple</p>
+        </header>
+
+        <div class="section-label">Projects</div>
+
+        <div class="projects-grid">
+            <a href="/tools/portfolio-visualizer.html" class="project-card">
+                <div class="project-preview">
+                    <div class="preview-mock">
+                        <div class="mock-chart">
+                            <svg viewBox="0 0 300 200" preserveAspectRatio="none">
+                                <defs>
+                                    <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#6366f1" stop-opacity="0.3"/>
+                                        <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+                                    </linearGradient>
+                                </defs>
+                                <path d="M0,170 C25,165 50,155 75,135 C100,115 110,85 130,55 C150,25 160,15 170,17 C180,19 190,30 200,50 C210,70 220,95 230,115 C240,135 250,150 270,160 C285,167 295,170 300,173 L300,200 L0,200 Z" fill="url(#chartGrad)"/>
+                                <path d="M0,170 C25,165 50,155 75,135 C100,115 110,85 130,55 C150,25 160,15 170,17 C180,19 190,30 200,50 C210,70 220,95 230,115 C240,135 250,150 270,160 C285,167 295,170 300,173" fill="none" stroke="#6366f1" stroke-width="2.5"/>
+                                <path d="M130,185 C150,180 170,170 190,158 C210,148 220,142 235,139 C250,136 265,135 280,136 C290,137 295,138 300,139" fill="none" stroke="#10b981" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.7"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="project-info">
+                    <span class="project-tag">Finance</span>
+                    <div class="project-name">Portfolio Drawdown Visualizer</div>
+                    <div class="project-desc">Model your retirement portfolio growth and withdrawal strategy.</div>
+                    <div class="project-cta">
+                        Try it live
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </div>
+                </div>
+            </a>
+
+            <a href="/tools/portfolio-growth.html" class="project-card">
+                <div class="project-preview" style="background: linear-gradient(145deg, #0a1a14 0%, #0a0f0e 100%);">
+                    <div class="preview-mock">
+                        <div class="mock-chart">
+                            <svg viewBox="0 0 300 200" preserveAspectRatio="none">
+                                <defs>
+                                    <linearGradient id="growthGrad" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#10b981" stop-opacity="0.3"/>
+                                        <stop offset="100%" stop-color="#10b981" stop-opacity="0"/>
+                                    </linearGradient>
+                                </defs>
+                                <path d="M0,180 C30,178 60,175 90,168 C120,160 150,145 180,115 C210,80 240,40 270,15 C285,5 295,2 300,0 L300,200 L0,200 Z" fill="url(#growthGrad)"/>
+                                <path d="M0,180 C30,178 60,175 90,168 C120,160 150,145 180,115 C210,80 240,40 270,15 C285,5 295,2 300,0" fill="none" stroke="#10b981" stroke-width="2.5"/>
+                                <path d="M0,185 C50,182 100,176 150,168 C200,158 250,145 300,130" fill="none" stroke="#6366f1" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.7"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="project-info">
+                    <span class="project-tag" style="color: #10b981; background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.2);">Finance</span>
+                    <div class="project-name">Portfolio Growth Visualizer</div>
+                    <div class="project-desc">Model portfolio growth with regular contributions and compound returns.</div>
+                    <div class="project-cta" style="color: #10b981;">
+                        Try it live
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </div>
+                </div>
+            </a>
+
+            <a href="https://vablet.com" target="_blank" class="project-card">
+                <div class="project-preview" style="background: linear-gradient(145deg, #0f1628 0%, #0a0f1e 100%);">
+                    <div class="preview-mock">
+                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 12px;">
+                            <div style="font-size: 2rem; font-weight: 800; letter-spacing: -2px; background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">vablet</div>
+                            <div style="display: flex; gap: 8px; width: 100%;">
+                                <div style="flex:1; background: #1a1a2e; border: 1px solid #252540; border-radius: 6px; padding: 8px; text-align: center;">
+                                    <span style="display:block; font-size:7px; text-transform:uppercase; letter-spacing:1px; color:#555; margin-bottom:2px;">Devices</span>
+                                    <span style="display:block; font-size:11px; font-weight:700; color:#3b82f6;">Managed</span>
+                                </div>
+                                <div style="flex:1; background: #1a1a2e; border: 1px solid #252540; border-radius: 6px; padding: 8px; text-align: center;">
+                                    <span style="display:block; font-size:7px; text-transform:uppercase; letter-spacing:1px; color:#555; margin-bottom:2px;">Files</span>
+                                    <span style="display:block; font-size:11px; font-weight:700; color:#3b82f6;">Distributed</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="project-info">
+                    <span class="project-tag" style="color: #3b82f6; background: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.2);">Enterprise SaaS</span>
+                    <div class="project-name">vablet</div>
+                    <div class="project-desc">Help companies manage employees' devices.</div>
+                    <div class="project-cta" style="color: #3b82f6;">
+                        Visit vablet.com
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </div>
+                </div>
+            </a>
+
+            <a href="/tools/points-calculator.html" class="project-card">
+                <div class="project-preview" style="background: linear-gradient(145deg, #1a0a2e 0%, #0f0a1e 100%);">
+                    <div class="preview-mock">
+                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 10px;">
+                            <div style="font-size: 2.5rem;">💳</div>
+                            <div style="display: flex; gap: 6px; width: 100%;">
+                                <div style="flex:1; background: rgba(168,85,247,0.15); border: 1px solid rgba(168,85,247,0.25); border-radius: 6px; padding: 8px; text-align: center;">
+                                    <span style="display:block; font-size:7px; text-transform:uppercase; letter-spacing:1px; color:#555; margin-bottom:2px;">Cost Basis</span>
+                                    <span style="display:block; font-size:14px; font-weight:700; color:#a855f7;">0.42¢</span>
+                                </div>
+                                <div style="flex:1; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.25); border-radius: 6px; padding: 8px; text-align: center;">
+                                    <span style="display:block; font-size:7px; text-transform:uppercase; letter-spacing:1px; color:#555; margin-bottom:2px;">Redemption</span>
+                                    <span style="display:block; font-size:14px; font-weight:700; color:#10b981;">0.63¢</span>
+                                </div>
+                            </div>
+                            <div style="background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.25); border-radius: 6px; padding: 4px 12px;">
+                                <span style="font-size: 10px; color: #10b981;">✅ +49% ROI</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="project-info">
+                    <span class="project-tag" style="color: #a855f7; background: rgba(168,85,247,0.1); border-color: rgba(168,85,247,0.2);">Finance</span>
+                    <div class="project-name">Points Cost Basis Calculator</div>
+                    <div class="project-desc">Calculate your true cents-per-point across all acquisition channels.</div>
+                    <div class="project-cta" style="color: #a855f7;">
+                        Try it live
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <footer>
+            <a href="https://www.willtam.com" style="color:#555;text-decoration:none;font-size:0.8rem;transition:color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#555'">About</a>
+            <span style="color:#2a2a2a;margin:0 8px;">·</span>
+            <span>&copy; 2026 Tamation Inc</span>
+        </footer>
+    </div>
+</body>
+</html>

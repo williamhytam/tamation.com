@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfolio Drawdown Visualizer</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f6f3ee;
+      --bg-card: #ffffff;
+      --bg-input: #f0ece5;
+      --text: #1a1714;
+      --text-muted: #8c8477;
+      --text-faint: #b8b0a3;
+      --border: #e4dfd6;
+      --border-light: #ece8e0;
+      --accent: #b8632e;
+      --accent-light: rgba(184, 99, 46, 0.1);
+      --accent-glow: rgba(184, 99, 46, 0.25);
+      --green: #3a7d5c;
+      --green-light: rgba(58, 125, 92, 0.1);
+      --red: #c4442a;
+      --red-light: rgba(196, 68, 42, 0.08);
+      --navy: #2c3e50;
+      --amber: #c8923c;
+      --amber-light: rgba(200, 146, 60, 0.12);
+      --shadow-sm: 0 1px 3px rgba(26, 23, 20, 0.04);
+      --shadow-md: 0 4px 16px rgba(26, 23, 20, 0.06);
+      --shadow-lg: 0 8px 32px rgba(26, 23, 20, 0.08);
+      --radius: 14px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      padding: 0 40px 60px;
+      -webkit-font-smoothing: antialiased;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      opacity: 0.025;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999;
+    }
+    .header {
+      max-width: 1400px;
+      margin: 0 auto 44px;
+      animation: fadeIn 0.6s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .header h1 {
+      font-family: 'Instrument Serif', serif;
+      font-size: 42px;
+      font-weight: 400;
+      letter-spacing: -0.5px;
+      color: var(--text);
+      margin-bottom: 6px;
+      line-height: 1.1;
+    }
+    .header p {
+      color: var(--text-muted);
+      font-size: 15px;
+      font-weight: 400;
+      letter-spacing: 0.2px;
+    }
+    .tab-nav {
+      display: flex;
+      gap: 6px;
+      margin-top: 28px;
+      align-items: center;
+    }
+    .tab-btn {
+      padding: 11px 26px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-family: 'Outfit', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 100px;
+      transition: all 0.25s ease;
+      letter-spacing: 0.3px;
+    }
+    .tab-btn:hover {
+      border-color: var(--text-faint);
+      color: var(--text);
+    }
+    .tab-btn.active {
+      background: var(--text);
+      border-color: var(--text);
+      color: var(--bg);
+      box-shadow: var(--shadow-md);
+    }
+    .default-btn {
+      padding: 11px 26px;
+      background: transparent;
+      border: 1px dashed var(--border);
+      color: var(--text-faint);
+      font-family: 'Outfit', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 100px;
+      transition: all 0.25s ease;
+      margin-left: auto;
+      letter-spacing: 0.3px;
+    }
+    .default-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-light);
+    }
+    .tab-content { display: none !important; }
+    .tab-content.active { display: grid !important; }
+    .main-grid {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 28px;
+      animation: fadeIn 0.8s ease-out 0.1s both;
+    }
+    .controls-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius);
+      padding: 28px;
+      height: fit-content;
+      position: sticky;
+      top: 32px;
+      box-shadow: var(--shadow-sm);
+    }
+    .controls-title {
+      font-family: 'Instrument Serif', serif;
+      font-size: 14px;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border-light);
+      font-style: italic;
+    }
+    .input-group { margin-bottom: 26px; }
+    .input-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 12px;
+    }
+    .input-header label {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      font-weight: 500;
+      letter-spacing: 0.2px;
+    }
+    .input-value {
+      font-family: 'Outfit', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.3px;
+    }
+    input[type="range"] {
+      width: 100%;
+      height: 4px;
+      -webkit-appearance: none;
+      background: var(--border);
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      background: var(--bg-card);
+      border: 2px solid var(--accent);
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 1px 6px var(--accent-glow);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+      box-shadow: 0 2px 12px var(--accent-glow);
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      background: var(--bg-card);
+      border: 2px solid var(--accent);
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 1px 6px var(--accent-glow);
+    }
+    .input-range {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      font-size: 10px;
+      color: var(--text-faint);
+      font-weight: 500;
+    }
+    .toggle-group {
+      display: flex;
+      background: var(--bg-input);
+      border-radius: 100px;
+      padding: 3px;
+      margin-bottom: 24px;
+    }
+    .toggle-btn {
+      flex: 1;
+      padding: 9px 12px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 500;
+      cursor: pointer;
+      border-radius: 100px;
+      transition: all 0.25s ease;
+    }
+    .toggle-btn.active {
+      background: var(--bg-card);
+      color: var(--text);
+      box-shadow: var(--shadow-sm);
+      font-weight: 600;
+    }
+    .chart-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius);
+      padding: 32px;
+      box-shadow: var(--shadow-sm);
+    }
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 32px;
+    }
+    .metric-card {
+      background: var(--bg);
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .metric-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    .metric-card.highlight {
+      background: var(--accent-light);
+      border-color: rgba(184, 99, 46, 0.15);
+    }
+    .metric-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--text-faint);
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    .metric-value {
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.5px;
+    }
+    .metric-card.highlight .metric-value {
+      color: var(--accent);
+    }
+    .metric-subtext {
+      font-size: 11px;
+      color: var(--text-faint);
+      margin-top: 6px;
+    }
+    .chart-container {
+      height: 420px;
+      margin-top: 8px;
+      position: relative;
+    }
+    .chart-legend {
+      display: flex;
+      justify-content: center;
+      gap: 28px;
+      flex-wrap: wrap;
+      margin-top: 24px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .legend-dot.growth { background: var(--green); }
+    .legend-dot.drawdown { background: var(--accent); }
+    .warning-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--red-light);
+      border: 1px solid rgba(196, 68, 42, 0.15);
+      color: var(--red);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 100px;
+      margin-top: 4px;
+    }
+    .success-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--green-light);
+      border: 1px solid rgba(58, 125, 92, 0.15);
+      color: var(--green);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 100px;
+      margin-top: 4px;
+    }
+    .strategy-note {
+      background: var(--amber-light);
+      border: 1px solid rgba(200, 146, 60, 0.2);
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 12px;
+      color: #8a6d2f;
+      margin-bottom: 24px;
+      line-height: 1.6;
+      font-weight: 500;
+    }
+    .calculated-rate {
+      background: var(--amber-light);
+      border: 1px solid rgba(200, 146, 60, 0.2);
+      border-radius: 12px;
+      padding: 22px;
+      text-align: center;
+      margin-top: 8px;
+    }
+    .calculated-label {
+      display: block;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    .calculated-value {
+      display: block;
+      font-family: 'Instrument Serif', serif;
+      font-size: 36px;
+      font-weight: 400;
+      color: var(--amber);
+    }
+    .calculated-sublabel {
+      display: block;
+      font-size: 11px;
+      color: var(--text-faint);
+      margin-top: 4px;
+    }
+    .depleted-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--amber-light);
+      border: 1px solid rgba(200, 146, 60, 0.2);
+      color: #8a6d2f;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 100px;
+      margin-top: 4px;
+    }
+    @media (max-width: 1200px) {
+      .main-grid { grid-template-columns: 1fr; }
+      .controls-panel { position: static; }
+      .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+      body { padding: 0 16px 24px; }
+      nav { padding: 12px 0 12px !important; height: auto !important; }
+      .header h1 { font-size: 30px; }
+      .header p { font-size: 13px; }
+      .tab-nav { flex-wrap: wrap; }
+      .tab-btn, .default-btn { padding: 9px 18px; font-size: 12px; }
+      .default-btn { margin-left: 0; }
+      .controls-panel { padding: 20px; border-radius: 12px; }
+      .chart-panel { padding: 16px; border-radius: 12px; }
+      .metrics-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .metric-card { padding: 12px; }
+      .metric-value { font-size: 16px; }
+      .chart-container { height: 280px; }
+    }
+  </style>
+</head>
+<body>
+  <nav style="max-width:1400px;margin:0 auto;padding:20px 0 16px;display:flex;align-items:center;height:56px;"><a href="/" style="color:#b8b0a3;text-decoration:none;font-size:14px;font-family:'Outfit',sans-serif;display:inline-flex;align-items:center;gap:6px;transition:color 0.2s;" onmouseover="this.style.color='#1a1714'" onmouseout="this.style.color='#b8b0a3'">&#8592; Tamation</a></nav>
+  <header class="header">
+    <h1>Portfolio Drawdown Visualizer</h1>
+    <p>Model your retirement portfolio growth and withdrawal strategy</p>
+    <div class="tab-nav">
+      <button class="tab-btn active" id="tabConservative">Conservative</button>
+      <button class="tab-btn" id="tabAggressive">Aggressive</button>
+      <button class="default-btn" id="btnDefault">Reset</button>
+    </div>
+  </header>
+
+  <!-- Conservative Tab -->
+  <div class="main-grid tab-content active" id="conservativeTab">
+    <div class="controls-panel">
+      <div class="controls-title">Parameters</div>
+      <div class="input-group">
+        <div class="input-header">
+          <label>Starting Balance</label>
+          <span class="input-value" id="startingBalanceValue">$800,000</span>
+        </div>
+        <input type="range" id="startingBalance" min="100000" max="5000000" step="50000" value="800000">
+        <div class="input-range"><span>$100,000</span><span>$5,000,000</span></div>
+      </div>
+      <div class="input-group">
+        <div class="input-header">
+          <label>Current Age</label>
+          <span class="input-value" id="currentAgeValue">43 yrs</span>
+        </div>
+        <input type="range" id="currentAge" min="20" max="70" step="1" value="43">
+        <div class="input-range"><span>20 yrs</span><span>70 yrs</span></div>
+      </div>
+      <div class="input-group">
+        <div class="input-header">
+          <label>Age to Start Drawdown</label>
+          <span class="input-value" id="drawdownAgeValue">65 yrs</span>
+        </div>
+        <input type="range" id="drawdownAge" min="21" max="80" step="1" value="65">
+        <div class="input-range"><span>21 yrs</span><span>80 yrs</span></div>
+      </div>
+      <div class="input-group">
+        <div class="input-header">
+          <label>Annual Return Rate</label>
+          <span class="input-value" id="annualReturnValue">7%</span>
+        </div>
+        <input type="range" id="annualReturn" min="0" max="15" step="0.5" value="7">
+        <div class="input-range"><span>0%</span><span>15%</span></div>
+      </div>
+      <div class="controls-title" style="margin-top: 8px;">Withdrawal Strategy</div>
+      <div class="toggle-group">
+        <button class="toggle-btn active" id="togglePercent">% of Balance</button>
+        <button class="toggle-btn" id="toggleFixed">Fixed Monthly</button>
+      </div>
+      <div class="input-group" id="percentGroup">
+        <div class="input-header">
+          <label>Annual Withdrawal Rate</label>
+          <span class="input-value" id="drawdownPercentValue">4%</span>
+        </div>
+        <input type="range" id="drawdownPercent" min="0" max="10" step="0.5" value="4">
+        <div class="input-range"><span>0%</span><span>10%</span></div>
+      </div>
+      <div class="input-group" id="fixedGroup" style="display: none;">
+        <div class="input-header">
+          <label>Monthly Withdrawal</label>
+          <span class="input-value" id="monthlyWithdrawalValue">$5,000</span>
+        </div>
+        <input type="range" id="monthlyWithdrawal" min="0" max="30000" step="500" value="5000">
+        <div class="input-range"><span>$0</span><span>$30,000</span></div>
+      </div>
+    </div>
+    <div class="chart-panel">
+      <div class="metrics-grid">
+        <div class="metric-card highlight">
+          <span class="metric-label">Balance at Drawdown</span>
+          <span class="metric-value" id="metricAtDrawdown">$0</span>
+          <span class="metric-subtext" id="metricGrowthYears">After 0 years of growth</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Peak Balance</span>
+          <span class="metric-value" id="metricPeak">$0</span>
+          <span class="metric-subtext">Maximum portfolio value</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Total Withdrawn</span>
+          <span class="metric-value" id="metricWithdrawn">$0</span>
+          <span class="metric-subtext" id="metricYearsDrawdown">Over 0 years</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Final Status</span>
+          <span class="metric-value" id="metricStatus">Sustainable</span>
+          <span class="metric-subtext" id="metricStatusBadge"></span>
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas id="chart"></canvas>
+      </div>
+      <div class="chart-legend">
+        <div class="legend-item">
+          <div class="legend-dot" style="background: #b8632e;"></div>
+          <span>Portfolio Balance</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background: #3a7d5c;"></div>
+          <span>Annual Withdrawal</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot growth"></div>
+          <span id="legendGrowth">Growth Phase (Age 40-65)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot drawdown"></div>
+          <span id="legendDrawdown">Drawdown Phase (Age 65+)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Aggressive Tab -->
+  <div class="main-grid tab-content" id="aggressiveTab">
+    <div class="controls-panel">
+      <div class="controls-title">Parameters</div>
+      <div class="input-group">
+        <div class="input-header">
+          <label>Starting Balance</label>
+          <span class="input-value" id="aggStartingBalanceValue">$800,000</span>
+        </div>
+        <input type="range" id="aggStartingBalance" min="100000" max="5000000" step="50000" value="800000">
+        <div class="input-range"><span>$100,000</span><span>$5,000,000</span></div>
+      </div>
+      <div class="input-group">
+        <div class="input-header">
+          <label>Current Age</label>
+          <span class="input-value" id="aggCurrentAgeValue">43 yrs</span>
+        </div>
+        <input type="range" id="aggCurrentAge" min="20" max="70" step="1" value="43">
+        <div class="input-range"><span>20 yrs</span><span>70 yrs</span></div>
+      </div>
+      <div class="input-group">
+        <div class="input-header">
+          <label>Age to Start Drawdown</label>
+          <span class="input-value" id="aggDrawdownAgeValue">65 yrs</span>
+        </div>
+        <input type="range" id="aggDrawdownAge" min="21" max="80" step="1" value="65">
+        <div class="input-range"><span>21 yrs</span><span>80 yrs</span></div>
+      </div>
+      <div class="input-group">
+        <div class="input-header">
+          <label>Annual Return Rate</label>
+          <span class="input-value" id="aggAnnualReturnValue">7%</span>
+        </div>
+        <input type="range" id="aggAnnualReturn" min="0" max="15" step="0.5" value="7">
+        <div class="input-range"><span>0%</span><span>15%</span></div>
+      </div>
+      <div class="controls-title" style="margin-top: 8px;">Target Strategy</div>
+      <div class="strategy-note">
+        Set your target age and desired ending balance. The calculator will determine the optimal annual withdrawal rate to achieve your goal.
+      </div>
+      <div class="input-group">
+        <div class="input-header">
+          <label>Target Depletion Age</label>
+          <span class="input-value" id="aggDepletionAgeValue">90 yrs</span>
+        </div>
+        <input type="range" id="aggDepletionAge" min="70" max="100" step="1" value="90">
+        <div class="input-range"><span>70 yrs</span><span>100 yrs</span></div>
+      </div>
+      <div class="input-group">
+        <div class="input-header">
+          <label>Target Ending Balance</label>
+          <span class="input-value" id="aggEndingBalanceValue">$0</span>
+        </div>
+        <input type="range" id="aggEndingBalance" min="0" max="1000000" step="25000" value="0">
+        <div class="input-range"><span>$0 (Fully Depleted)</span><span>$1,000,000</span></div>
+      </div>
+      <div class="calculated-rate">
+        <span class="calculated-label">Calculated Withdrawal Rate</span>
+        <span class="calculated-value" id="aggCalculatedRate">0%</span>
+        <span class="calculated-sublabel">of balance per year</span>
+      </div>
+    </div>
+    <div class="chart-panel">
+      <div class="metrics-grid">
+        <div class="metric-card highlight">
+          <span class="metric-label">Balance at Drawdown</span>
+          <span class="metric-value" id="aggMetricAtDrawdown">$0</span>
+          <span class="metric-subtext" id="aggMetricGrowthYears">After 0 years of growth</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Peak Balance</span>
+          <span class="metric-value" id="aggMetricPeak">$0</span>
+          <span class="metric-subtext">Maximum portfolio value</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Total Withdrawn</span>
+          <span class="metric-value" id="aggMetricWithdrawn">$0</span>
+          <span class="metric-subtext" id="aggMetricYearsDrawdown">Over 0 years</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Final Status</span>
+          <span class="metric-value" id="aggMetricStatus">Age 90</span>
+          <span class="metric-subtext" id="aggMetricStatusBadge"></span>
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas id="aggChart"></canvas>
+      </div>
+      <div class="chart-legend">
+        <div class="legend-item">
+          <div class="legend-dot" style="background: #c8923c;"></div>
+          <span>Portfolio Balance</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background: #c4442a;"></div>
+          <span>Annual Withdrawal</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot growth"></div>
+          <span id="aggLegendGrowth">Growth Phase (Age 40-65)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background: #c8923c;"></div>
+          <span id="aggLegendDrawdown">Depletion Phase (Age 65-90)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY_CONSERVATIVE = 'portfolio_conservative_state';
+    const STORAGE_KEY_AGGRESSIVE = 'portfolio_aggressive_state';
+    const DEFAULT_STATE = {
+      startingBalance: 800000, currentAge: 43, drawdownAge: 48, annualReturn: 7,
+      drawdownPercent: 4, monthlyWithdrawal: 5000, usePercentage: true
+    };
+    const DEFAULT_AGG_STATE = {
+      startingBalance: 800000, currentAge: 43, drawdownAge: 48, annualReturn: 7,
+      depletionAge: 90, endingBalance: 0
+    };
+    function loadState() {
+      try { const s = localStorage.getItem(STORAGE_KEY_CONSERVATIVE); if (s) return { ...DEFAULT_STATE, ...JSON.parse(s) }; } catch(e) {}
+      return { ...DEFAULT_STATE };
+    }
+    function loadAggState() {
+      try { const s = localStorage.getItem(STORAGE_KEY_AGGRESSIVE); if (s) return { ...DEFAULT_AGG_STATE, ...JSON.parse(s) }; } catch(e) {}
+      return { ...DEFAULT_AGG_STATE };
+    }
+    function saveState() { try { localStorage.setItem(STORAGE_KEY_CONSERVATIVE, JSON.stringify(state)); } catch(e) {} }
+    function saveAggState() { try { localStorage.setItem(STORAGE_KEY_AGGRESSIVE, JSON.stringify(aggState)); } catch(e) {} }
+
+    let state = loadState();
+    let chart = null;
+
+    const formatCurrency = (value) => {
+      if (value >= 1000000) return '$' + (value / 1000000).toFixed(2) + 'M';
+      if (value >= 1000) return '$' + (value / 1000).toFixed(0) + 'K';
+      return '$' + value.toFixed(0);
+    };
+    const formatFullCurrency = (value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
+
+    function calculateProjection() {
+      const data = [];
+      let balance = state.startingBalance;
+      const monthlyReturn = state.annualReturn / 100 / 12;
+      const maxAge = 100;
+      for (let age = state.currentAge; age <= maxAge; age++) {
+        let yearlyWithdrawal = 0;
+        if (balance <= 0) { data.push({ age, balance: 0, withdrawal: 0 }); break; }
+        if (age >= state.drawdownAge && balance > 0) {
+          if (state.usePercentage) { yearlyWithdrawal = balance * (state.drawdownPercent / 100); }
+          else { yearlyWithdrawal = state.monthlyWithdrawal * 12; }
+        }
+        data.push({ age, balance: Math.max(0, balance), withdrawal: yearlyWithdrawal });
+        for (let month = 0; month < 12; month++) {
+          balance *= (1 + monthlyReturn);
+          if (age >= state.drawdownAge) {
+            if (state.usePercentage) { balance -= (balance * (state.drawdownPercent / 100)) / 12; }
+            else { balance -= state.monthlyWithdrawal; }
+          }
+        }
+      }
+      return data;
+    }
+
+    function calculateMetrics(data) {
+      const peakBalance = Math.max(...data.map(d => d.balance));
+      const atDrawdown = data.find(d => d.age === state.drawdownAge)?.balance || 0;
+      const depleted = data.find(d => d.balance <= 0);
+      const depletionAge = depleted ? depleted.age : null;
+      const yearsInDrawdown = depletionAge ? depletionAge - state.drawdownAge : 100 - state.drawdownAge;
+      let totalWithdrawn = 0;
+      data.forEach((d) => {
+        if (d.age >= state.drawdownAge && d.balance > 0) {
+          if (state.usePercentage) { totalWithdrawn += d.balance * (state.drawdownPercent / 100); }
+          else { totalWithdrawn += state.monthlyWithdrawal * 12; }
+        }
+      });
+      return { peakBalance, atDrawdown, depletionAge, yearsInDrawdown, totalWithdrawn, growthYears: state.drawdownAge - state.currentAge };
+    }
+
+    function updateChart() {
+      const data = calculateProjection();
+      const metrics = calculateMetrics(data);
+      document.getElementById('metricAtDrawdown').textContent = formatCurrency(metrics.atDrawdown);
+      document.getElementById('metricGrowthYears').textContent = 'After ' + metrics.growthYears + ' years of growth';
+      document.getElementById('metricPeak').textContent = formatCurrency(metrics.peakBalance);
+      document.getElementById('metricWithdrawn').textContent = formatCurrency(metrics.totalWithdrawn);
+      document.getElementById('metricYearsDrawdown').textContent = 'Over ' + metrics.yearsInDrawdown + ' years';
+      if (metrics.depletionAge) {
+        document.getElementById('metricStatus').textContent = 'Depletes at ' + metrics.depletionAge;
+        document.getElementById('metricStatusBadge').innerHTML = '<span class="warning-badge">&#9888; Runs out</span>';
+      } else {
+        document.getElementById('metricStatus').textContent = 'Sustainable';
+        document.getElementById('metricStatusBadge').innerHTML = '<span class="success-badge">&#10003; Lasts to 100</span>';
+      }
+      document.getElementById('legendGrowth').textContent = 'Growth Phase (Age ' + state.currentAge + '\u2013' + state.drawdownAge + ')';
+      document.getElementById('legendDrawdown').textContent = 'Drawdown Phase (Age ' + state.drawdownAge + '+)';
+      const labels = data.map(d => d.age);
+      const values = data.map(d => d.balance);
+      const withdrawals = data.map(d => d.withdrawal);
+      const ctx = document.getElementById('chart').getContext('2d');
+      if (chart) {
+        chart.data.labels = labels;
+        chart.data.datasets[0].data = values;
+        chart.data.datasets[1].data = withdrawals;
+        chart.update('none');
+      } else {
+        chart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [
+              { label: 'Portfolio Balance', data: values, borderColor: '#b8632e', backgroundColor: 'rgba(184,99,46,0.12)', borderWidth: 2.5, fill: '+1', tension: 0.3, pointRadius: 0, pointHoverRadius: 6, pointHoverBackgroundColor: '#b8632e', pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2 },
+              { label: 'Annual Withdrawal', data: withdrawals, borderColor: '#3a7d5c', backgroundColor: 'transparent', borderWidth: 2, fill: false, tension: 0.3, pointRadius: 0, pointHoverRadius: 5, pointHoverBackgroundColor: '#3a7d5c', pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2, borderDash: [5, 5] }
+            ]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            interaction: { intersect: false, mode: 'index' },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: 'rgba(26,23,20,0.92)', borderColor: '#b8b0a3', borderWidth: 1,
+                titleFont: { family: 'Outfit', size: 11 }, titleColor: '#b8b0a3',
+                bodyFont: { family: 'Outfit', size: 14, weight: 'bold' }, bodyColor: '#fff',
+                padding: 14, cornerRadius: 10, displayColors: true,
+                callbacks: {
+                  title: (items) => 'Age ' + items[0].label,
+                  label: (item) => item.dataset.label + ': ' + formatFullCurrency(item.raw),
+                  afterBody: (items) => {
+                    const idx = items[0].dataIndex;
+                    const bal = values[idx] || 0; const wth = withdrawals[idx] || 0;
+                    const phase = items[0].label >= state.drawdownAge ? 'Drawdown' : 'Growth';
+                    return '\nDifference: ' + formatFullCurrency(bal - wth) + '\n' + phase + ' Phase';
+                  }
+                }
+              }
+            },
+            scales: {
+              x: { grid: { color: '#e4dfd6', drawBorder: false }, ticks: { color: '#b8b0a3', font: { family: 'Outfit', size: 11 } }, title: { display: true, text: 'Age', color: '#8c8477', font: { family: 'Outfit', size: 11 } } },
+              y: { type: 'linear', display: true, position: 'left', grid: { color: '#e4dfd6', drawBorder: false }, ticks: { color: '#8c8477', font: { family: 'Outfit', size: 11 }, callback: (v) => formatCurrency(v) }, title: { display: true, text: 'Amount', color: '#8c8477', font: { family: 'Outfit', size: 10 } }, beginAtZero: true }
+            }
+          }
+        });
+      }
+    }
+
+    function setupListeners() {
+      document.getElementById('startingBalance').addEventListener('input', (e) => { state.startingBalance = parseFloat(e.target.value); document.getElementById('startingBalanceValue').textContent = formatFullCurrency(state.startingBalance); saveState(); updateChart(); });
+      document.getElementById('currentAge').addEventListener('input', (e) => { state.currentAge = parseInt(e.target.value); document.getElementById('currentAgeValue').textContent = state.currentAge + ' yrs'; if (state.drawdownAge < state.currentAge) { state.drawdownAge = state.currentAge; document.getElementById('drawdownAge').value = state.drawdownAge; document.getElementById('drawdownAgeValue').textContent = state.drawdownAge + ' yrs'; } document.getElementById('drawdownAge').min = state.currentAge; saveState(); updateChart(); });
+      document.getElementById('drawdownAge').addEventListener('input', (e) => { state.drawdownAge = Math.max(parseInt(e.target.value), state.currentAge); document.getElementById('drawdownAgeValue').textContent = state.drawdownAge + ' yrs'; saveState(); updateChart(); });
+      document.getElementById('annualReturn').addEventListener('input', (e) => { state.annualReturn = parseFloat(e.target.value); document.getElementById('annualReturnValue').textContent = state.annualReturn + '%'; saveState(); updateChart(); });
+      document.getElementById('drawdownPercent').addEventListener('input', (e) => { state.drawdownPercent = parseFloat(e.target.value); document.getElementById('drawdownPercentValue').textContent = state.drawdownPercent + '%'; saveState(); updateChart(); });
+      document.getElementById('monthlyWithdrawal').addEventListener('input', (e) => { state.monthlyWithdrawal = parseFloat(e.target.value); document.getElementById('monthlyWithdrawalValue').textContent = formatFullCurrency(state.monthlyWithdrawal); saveState(); updateChart(); });
+      document.getElementById('togglePercent').addEventListener('click', () => { state.usePercentage = true; document.getElementById('togglePercent').classList.add('active'); document.getElementById('toggleFixed').classList.remove('active'); document.getElementById('percentGroup').style.display = 'block'; document.getElementById('fixedGroup').style.display = 'none'; saveState(); updateChart(); });
+      document.getElementById('toggleFixed').addEventListener('click', () => { state.usePercentage = false; document.getElementById('toggleFixed').classList.add('active'); document.getElementById('togglePercent').classList.remove('active'); document.getElementById('fixedGroup').style.display = 'block'; document.getElementById('percentGroup').style.display = 'none'; saveState(); updateChart(); });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => { setupListeners(); syncConservativeUI(); updateChart(); setupAggressiveListeners(); syncAggressiveUI(); updateAggressiveChart(); setupTabListeners(); setupDefaultButton(); });
+
+    function syncConservativeUI() {
+      document.getElementById('startingBalance').value = state.startingBalance;
+      document.getElementById('startingBalanceValue').textContent = formatFullCurrency(state.startingBalance);
+      document.getElementById('currentAge').value = state.currentAge;
+      document.getElementById('currentAgeValue').textContent = state.currentAge + ' yrs';
+      document.getElementById('drawdownAge').value = state.drawdownAge;
+      document.getElementById('drawdownAge').min = state.currentAge;
+      document.getElementById('drawdownAgeValue').textContent = state.drawdownAge + ' yrs';
+      document.getElementById('annualReturn').value = state.annualReturn;
+      document.getElementById('annualReturnValue').textContent = state.annualReturn + '%';
+      document.getElementById('drawdownPercent').value = state.drawdownPercent;
+      document.getElementById('drawdownPercentValue').textContent = state.drawdownPercent + '%';
+      document.getElementById('monthlyWithdrawal').value = state.monthlyWithdrawal;
+      document.getElementById('monthlyWithdrawalValue').textContent = formatFullCurrency(state.monthlyWithdrawal);
+      if (state.usePercentage) { document.getElementById('togglePercent').classList.add('active'); document.getElementById('toggleFixed').classList.remove('active'); document.getElementById('percentGroup').style.display = 'block'; document.getElementById('fixedGroup').style.display = 'none'; }
+      else { document.getElementById('toggleFixed').classList.add('active'); document.getElementById('togglePercent').classList.remove('active'); document.getElementById('fixedGroup').style.display = 'block'; document.getElementById('percentGroup').style.display = 'none'; }
+    }
+
+    function syncAggressiveUI() {
+      document.getElementById('aggStartingBalance').value = aggState.startingBalance;
+      document.getElementById('aggStartingBalanceValue').textContent = formatFullCurrency(aggState.startingBalance);
+      document.getElementById('aggCurrentAge').value = aggState.currentAge;
+      document.getElementById('aggCurrentAgeValue').textContent = aggState.currentAge + ' yrs';
+      document.getElementById('aggDrawdownAge').value = aggState.drawdownAge;
+      document.getElementById('aggDrawdownAge').min = aggState.currentAge;
+      document.getElementById('aggDrawdownAgeValue').textContent = aggState.drawdownAge + ' yrs';
+      document.getElementById('aggAnnualReturn').value = aggState.annualReturn;
+      document.getElementById('aggAnnualReturnValue').textContent = aggState.annualReturn + '%';
+      document.getElementById('aggDepletionAge').value = aggState.depletionAge;
+      document.getElementById('aggDepletionAge').min = aggState.drawdownAge + 1;
+      document.getElementById('aggDepletionAgeValue').textContent = aggState.depletionAge + ' yrs';
+      document.getElementById('aggEndingBalance').value = aggState.endingBalance;
+      document.getElementById('aggEndingBalanceValue').textContent = aggState.endingBalance === 0 ? '$0' : formatFullCurrency(aggState.endingBalance);
+    }
+
+    function setupDefaultButton() {
+      document.getElementById('btnDefault').addEventListener('click', () => {
+        state = { ...DEFAULT_STATE }; saveState(); syncConservativeUI(); updateChart();
+        aggState = { ...DEFAULT_AGG_STATE }; saveAggState(); syncAggressiveUI(); updateAggressiveChart();
+      });
+    }
+
+    let aggState = loadAggState();
+    let aggChart = null;
+
+    function calculateOptimalRate() {
+      const { startingBalance, currentAge, drawdownAge, annualReturn, depletionAge, endingBalance } = aggState;
+      const monthlyReturn = annualReturn / 100 / 12;
+      let balanceAtDrawdown = startingBalance;
+      for (let age = currentAge; age < drawdownAge; age++) { for (let month = 0; month < 12; month++) { balanceAtDrawdown *= (1 + monthlyReturn); } }
+      let low = 0, high = 50, optimalRate = 0;
+      for (let i = 0; i < 50; i++) { const mid = (low + high) / 2; const fb = simulateFinalBalance(balanceAtDrawdown, mid, annualReturn, depletionAge - drawdownAge); if (fb < endingBalance) { high = mid; } else { low = mid; optimalRate = mid; } }
+      return optimalRate;
+    }
+
+    function simulateFinalBalance(startBalance, withdrawalRate, annualReturn, years) {
+      let balance = startBalance; const monthlyReturn = annualReturn / 100 / 12;
+      for (let year = 0; year < years; year++) { for (let month = 0; month < 12; month++) { balance *= (1 + monthlyReturn); balance -= (balance * (withdrawalRate / 100)) / 12; } if (balance < 0) return 0; }
+      return Math.max(0, balance);
+    }
+
+    function calculateAggressiveProjection(withdrawalRate) {
+      const data = []; let balance = aggState.startingBalance; const monthlyReturn = aggState.annualReturn / 100 / 12;
+      for (let age = aggState.currentAge; age <= aggState.depletionAge + 2; age++) {
+        let yearlyWithdrawal = 0;
+        if (balance <= aggState.endingBalance && age > aggState.drawdownAge) { data.push({ age, balance: Math.max(0, balance), withdrawal: 0 }); continue; }
+        if (age >= aggState.drawdownAge && balance > 0) { yearlyWithdrawal = balance * (withdrawalRate / 100); }
+        data.push({ age, balance: Math.max(0, balance), withdrawal: yearlyWithdrawal });
+        for (let month = 0; month < 12; month++) { balance *= (1 + monthlyReturn); if (age >= aggState.drawdownAge) { balance -= (balance * (withdrawalRate / 100)) / 12; } }
+      }
+      return data;
+    }
+
+    function calculateAggressiveMetrics(data, withdrawalRate) {
+      const peakBalance = Math.max(...data.map(d => d.balance));
+      const atDrawdown = data.find(d => d.age === aggState.drawdownAge)?.balance || 0;
+      const atTargetAge = data.find(d => d.age === aggState.depletionAge)?.balance || 0;
+      let totalWithdrawn = 0;
+      data.forEach((d) => { if (d.age >= aggState.drawdownAge && d.balance > 0) { totalWithdrawn += d.withdrawal; } });
+      return { peakBalance, atDrawdown, finalBalance: atTargetAge, totalWithdrawn, growthYears: aggState.drawdownAge - aggState.currentAge, yearsInDrawdown: aggState.depletionAge - aggState.drawdownAge };
+    }
+
+    function updateAggressiveChart() {
+      const withdrawalRate = calculateOptimalRate();
+      const data = calculateAggressiveProjection(withdrawalRate);
+      const metrics = calculateAggressiveMetrics(data, withdrawalRate);
+      document.getElementById('aggCalculatedRate').textContent = withdrawalRate.toFixed(1) + '%';
+      document.getElementById('aggMetricAtDrawdown').textContent = formatCurrency(metrics.atDrawdown);
+      document.getElementById('aggMetricGrowthYears').textContent = 'After ' + metrics.growthYears + ' years of growth';
+      document.getElementById('aggMetricPeak').textContent = formatCurrency(metrics.peakBalance);
+      document.getElementById('aggMetricWithdrawn').textContent = formatCurrency(metrics.totalWithdrawn);
+      document.getElementById('aggMetricYearsDrawdown').textContent = 'Over ' + metrics.yearsInDrawdown + ' years';
+      if (aggState.endingBalance === 0) {
+        document.getElementById('aggMetricStatus').textContent = 'Depleted at ' + aggState.depletionAge;
+        document.getElementById('aggMetricStatusBadge').innerHTML = '<span class="depleted-badge">\uD83C\uDFAF Fully spent</span>';
+      } else {
+        document.getElementById('aggMetricStatus').textContent = formatCurrency(metrics.finalBalance);
+        document.getElementById('aggMetricStatusBadge').innerHTML = '<span class="depleted-badge">\uD83C\uDFAF Left at age ' + aggState.depletionAge + '</span>';
+      }
+      document.getElementById('aggLegendGrowth').textContent = 'Growth Phase (Age ' + aggState.currentAge + '\u2013' + aggState.drawdownAge + ')';
+      document.getElementById('aggLegendDrawdown').textContent = 'Drawdown Phase (Age ' + aggState.drawdownAge + '\u2013' + aggState.depletionAge + ')';
+      const labels = data.map(d => d.age); const values = data.map(d => d.balance); const withdrawals = data.map(d => d.withdrawal);
+      const ctx = document.getElementById('aggChart').getContext('2d');
+      if (aggChart) { aggChart.data.labels = labels; aggChart.data.datasets[0].data = values; aggChart.data.datasets[1].data = withdrawals; aggChart.update('none'); }
+      else {
+        aggChart = new Chart(ctx, {
+          type: 'line',
+          data: { labels: labels, datasets: [
+            { label: 'Portfolio Balance', data: values, borderColor: '#c8923c', backgroundColor: 'rgba(200,146,60,0.12)', borderWidth: 2.5, fill: '+1', tension: 0.3, pointRadius: 0, pointHoverRadius: 6, pointHoverBackgroundColor: '#c8923c', pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2 },
+            { label: 'Annual Withdrawal', data: withdrawals, borderColor: '#c4442a', backgroundColor: 'transparent', borderWidth: 2, fill: false, tension: 0.3, pointRadius: 0, pointHoverRadius: 5, pointHoverBackgroundColor: '#c4442a', pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2, borderDash: [5, 5] }
+          ] },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            interaction: { intersect: false, mode: 'index' },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: 'rgba(26,23,20,0.92)', borderColor: '#b8b0a3', borderWidth: 1,
+                titleFont: { family: 'Outfit', size: 11 }, titleColor: '#b8b0a3',
+                bodyFont: { family: 'Outfit', size: 14, weight: 'bold' }, bodyColor: '#fff',
+                padding: 14, cornerRadius: 10, displayColors: true,
+                callbacks: {
+                  title: (items) => 'Age ' + items[0].label,
+                  label: (item) => item.dataset.label + ': ' + formatFullCurrency(item.raw),
+                  afterBody: (items) => {
+                    const idx = items[0].dataIndex;
+                    const bal = values[idx] || 0; const wth = withdrawals[idx] || 0;
+                    const age = parseInt(items[0].label);
+                    const phase = age < aggState.drawdownAge ? 'Growth' : 'Depletion';
+                    return '\nDifference: ' + formatFullCurrency(bal - wth) + '\n' + phase + ' Phase';
+                  }
+                }
+              }
+            },
+            scales: {
+              x: { grid: { color: '#e4dfd6', drawBorder: false }, ticks: { color: '#b8b0a3', font: { family: 'Outfit', size: 11 } }, title: { display: true, text: 'Age', color: '#8c8477', font: { family: 'Outfit', size: 11 } } },
+              y: { type: 'linear', display: true, position: 'left', grid: { color: '#e4dfd6', drawBorder: false }, ticks: { color: '#8c8477', font: { family: 'Outfit', size: 11 }, callback: (v) => formatCurrency(v) }, title: { display: true, text: 'Amount', color: '#8c8477', font: { family: 'Outfit', size: 10 } }, beginAtZero: true }
+            }
+          }
+        });
+      }
+    }
+
+    function setupAggressiveListeners() {
+      document.getElementById('aggStartingBalance').addEventListener('input', (e) => { aggState.startingBalance = parseFloat(e.target.value); document.getElementById('aggStartingBalanceValue').textContent = formatFullCurrency(aggState.startingBalance); saveAggState(); updateAggressiveChart(); });
+      document.getElementById('aggCurrentAge').addEventListener('input', (e) => {
+        aggState.currentAge = parseInt(e.target.value); document.getElementById('aggCurrentAgeValue').textContent = aggState.currentAge + ' yrs';
+        if (aggState.drawdownAge < aggState.currentAge) { aggState.drawdownAge = aggState.currentAge; document.getElementById('aggDrawdownAge').value = aggState.drawdownAge; document.getElementById('aggDrawdownAgeValue').textContent = aggState.drawdownAge + ' yrs'; }
+        document.getElementById('aggDrawdownAge').min = aggState.currentAge;
+        if (aggState.depletionAge <= aggState.drawdownAge) { aggState.depletionAge = aggState.drawdownAge + 5; document.getElementById('aggDepletionAge').value = aggState.depletionAge; document.getElementById('aggDepletionAgeValue').textContent = aggState.depletionAge + ' yrs'; }
+        document.getElementById('aggDepletionAge').min = aggState.drawdownAge + 1; saveAggState(); updateAggressiveChart();
+      });
+      document.getElementById('aggDrawdownAge').addEventListener('input', (e) => {
+        aggState.drawdownAge = Math.max(parseInt(e.target.value), aggState.currentAge); document.getElementById('aggDrawdownAgeValue').textContent = aggState.drawdownAge + ' yrs';
+        if (aggState.depletionAge <= aggState.drawdownAge) { aggState.depletionAge = aggState.drawdownAge + 5; document.getElementById('aggDepletionAge').value = aggState.depletionAge; document.getElementById('aggDepletionAgeValue').textContent = aggState.depletionAge + ' yrs'; }
+        document.getElementById('aggDepletionAge').min = aggState.drawdownAge + 1; saveAggState(); updateAggressiveChart();
+      });
+      document.getElementById('aggAnnualReturn').addEventListener('input', (e) => { aggState.annualReturn = parseFloat(e.target.value); document.getElementById('aggAnnualReturnValue').textContent = aggState.annualReturn + '%'; saveAggState(); updateAggressiveChart(); });
+      document.getElementById('aggDepletionAge').addEventListener('input', (e) => { aggState.depletionAge = Math.max(parseInt(e.target.value), aggState.drawdownAge + 1); document.getElementById('aggDepletionAgeValue').textContent = aggState.depletionAge + ' yrs'; saveAggState(); updateAggressiveChart(); });
+      document.getElementById('aggEndingBalance').addEventListener('input', (e) => { aggState.endingBalance = parseFloat(e.target.value); document.getElementById('aggEndingBalanceValue').textContent = aggState.endingBalance === 0 ? '$0' : formatFullCurrency(aggState.endingBalance); saveAggState(); updateAggressiveChart(); });
+    }
+
+    function setupTabListeners() {
+      document.getElementById('tabConservative').addEventListener('click', () => { document.getElementById('tabConservative').classList.add('active'); document.getElementById('tabAggressive').classList.remove('active'); document.getElementById('conservativeTab').classList.add('active'); document.getElementById('aggressiveTab').classList.remove('active'); });
+      document.getElementById('tabAggressive').addEventListener('click', () => { document.getElementById('tabAggressive').classList.add('active'); document.getElementById('tabConservative').classList.remove('active'); document.getElementById('aggressiveTab').classList.add('active'); document.getElementById('conservativeTab').classList.remove('active'); setTimeout(() => { if (aggChart) { aggChart.resize(); } }, 50); });
+    }
+  </script>
+</body>
+</html>
