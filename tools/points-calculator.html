@@ -9,35 +9,35 @@
   <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=JetBrains+Mono:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-deep: #0d0d14;
-      --bg-card: #151520;
-      --bg-card-hover: #1a1a28;
-      --bg-inset: #0a0a10;
-      --border: #2a2a3a;
-      --border-light: #333348;
-      --gold: #c9a84c;
-      --gold-dim: #8a7235;
-      --gold-bright: #e8c65a;
-      --gold-glow: rgba(201, 168, 76, 0.12);
-      --teal: #4a9e8e;
-      --teal-dim: #2d6a5e;
+      --bg-deep: #0c0b09;
+      --bg-card: #13120f;
+      --bg-card-hover: #1a1915;
+      --bg-inset: #0a0908;
+      --border: #2a2722;
+      --border-light: #3d3a35;
+      --gold: #c8956c;
+      --gold-dim: #8a6545;
+      --gold-bright: #daa87e;
+      --gold-glow: rgba(200, 149, 108, 0.12);
+      --teal: #7a9e7e;
+      --teal-dim: #4a6b4e;
       --cream: #e8e0d0;
-      --cream-dim: #9a9286;
+      --cream-dim: #6b6660;
       --red: #c45c5c;
       --red-dim: rgba(196, 92, 92, 0.15);
-      --green: #5cb87a;
-      --green-dim: rgba(92, 184, 122, 0.15);
-      --blue: #5b8ec9;
-      --blue-dim: rgba(91, 142, 201, 0.12);
+      --green: #7a9e7e;
+      --green-dim: rgba(122, 158, 126, 0.15);
+      --blue: #7889a4;
+      --blue-dim: rgba(120, 137, 164, 0.12);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background: var(--bg-deep);
       color: var(--cream);
-      font-family: 'Source Serif 4', Georgia, serif;
+      font-family: 'Instrument Sans', sans-serif;
       -webkit-font-smoothing: antialiased;
     }
     body::before {
@@ -54,8 +54,8 @@
     input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
     input[type="number"] { -moz-appearance: textfield; }
     input:focus { outline: none; border-color: var(--gold) !important; box-shadow: 0 0 0 1px var(--gold-dim); }
-    .font-display { font-family: 'Playfair Display', Georgia, serif; }
-    .font-mono { font-family: 'JetBrains Mono', 'Courier New', monospace; }
+    .font-display { font-family: 'DM Serif Display', Georgia, serif; }
+    .font-mono { font-family: 'IBM Plex Mono', monospace; }
     .card {
       background: var(--bg-card);
       border: 1px solid var(--border);
@@ -78,12 +78,12 @@
     .card:hover::before { opacity: 1; }
     .card.card-blue::before { background: var(--blue); }
     .card.card-summary {
-      background: linear-gradient(135deg, var(--bg-card) 0%, #17172a 100%);
+      background: linear-gradient(135deg, var(--bg-card) 0%, #191714 100%);
       border-color: var(--gold-dim);
     }
     .card.card-summary::before { opacity: 1; background: var(--gold); }
     .section-label {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'IBM Plex Mono', monospace;
       font-size: 10px;
       letter-spacing: 3px;
       text-transform: uppercase;
@@ -91,10 +91,10 @@
       margin-bottom: 4px;
     }
     .section-title {
-      font-family: 'Playfair Display', serif;
+      font-family: 'DM Serif Display', serif;
       font-size: 22px;
-      font-weight: 600;
-      color: #fff;
+      font-weight: 400;
+      color: var(--cream);
       margin-bottom: 6px;
     }
     .section-desc {
@@ -108,8 +108,8 @@
       border: 1px solid var(--border);
       border-radius: 2px;
       padding: 8px 12px;
-      color: #fff;
-      font-family: 'JetBrains Mono', monospace;
+      color: var(--cream);
+      font-family: 'IBM Plex Mono', monospace;
       font-size: 14px;
       transition: border-color 0.2s, box-shadow 0.2s;
       width: 100%;
@@ -120,17 +120,17 @@
       border-radius: 2px;
       padding: 8px 12px;
       color: var(--cream);
-      font-family: 'Source Serif 4', serif;
+      font-family: 'Instrument Sans', sans-serif;
       font-size: 14px;
       transition: border-color 0.2s, box-shadow 0.2s;
       width: 100%;
     }
     .btn-primary {
       background: var(--gold-dim);
-      color: #fff;
+      color: var(--cream);
       border: none;
       padding: 6px 14px;
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'IBM Plex Mono', monospace;
       font-size: 11px;
       letter-spacing: 1px;
       text-transform: uppercase;
@@ -138,13 +138,13 @@
       transition: background 0.2s;
       border-radius: 2px;
     }
-    .btn-primary:hover { background: var(--gold); color: #0d0d14; }
+    .btn-primary:hover { background: var(--gold); color: #0c0b09; }
     .btn-blue {
-      background: rgba(91,142,201,0.2);
+      background: rgba(120,137,164,0.2);
       color: var(--blue);
-      border: 1px solid rgba(91,142,201,0.3);
+      border: 1px solid rgba(120,137,164,0.3);
       padding: 6px 14px;
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'IBM Plex Mono', monospace;
       font-size: 11px;
       letter-spacing: 1px;
       text-transform: uppercase;
@@ -152,11 +152,11 @@
       transition: all 0.2s;
       border-radius: 2px;
     }
-    .btn-blue:hover { background: rgba(91,142,201,0.35); }
+    .btn-blue:hover { background: rgba(120,137,164,0.35); }
     .btn-pill {
       padding: 4px 10px;
       border-radius: 2px;
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'IBM Plex Mono', monospace;
       font-size: 11px;
       border: 1px solid var(--border);
       background: transparent;
@@ -165,7 +165,7 @@
       transition: all 0.2s;
     }
     .btn-pill:hover { border-color: var(--gold-dim); color: var(--cream); }
-    .btn-pill.active { background: var(--gold-dim); color: #fff; border-color: var(--gold-dim); }
+    .btn-pill.active { background: var(--gold-dim); color: var(--cream); border-color: var(--gold-dim); }
     .remove-btn {
       color: var(--red);
       background: none;
@@ -174,7 +174,7 @@
       font-size: 18px;
       opacity: 0.5;
       transition: opacity 0.2s;
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'IBM Plex Mono', monospace;
     }
     .remove-btn:hover { opacity: 1; }
     .stat-box {
@@ -184,7 +184,7 @@
       border-radius: 2px;
     }
     .stat-label {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'IBM Plex Mono', monospace;
       font-size: 10px;
       letter-spacing: 1.5px;
       text-transform: uppercase;
@@ -192,13 +192,13 @@
       margin-bottom: 6px;
     }
     .stat-value {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'IBM Plex Mono', monospace;
       font-size: 20px;
-      font-weight: 600;
-      color: #fff;
+      font-weight: 500;
+      color: var(--cream);
     }
     .stat-sub {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'IBM Plex Mono', monospace;
       font-size: 11px;
       color: var(--cream-dim);
       margin-top: 2px;
@@ -244,7 +244,7 @@
     }
     .verdict-good {
       background: var(--green-dim);
-      border: 1px solid rgba(92, 184, 122, 0.3);
+      border: 1px solid rgba(122, 158, 126, 0.3);
       border-radius: 2px;
       padding: 16px 20px;
       text-align: center;
@@ -283,15 +283,15 @@
   </style>
 </head>
 <body>
-  <nav style="max-width:900px;margin:0 auto;padding:20px 32px 12px;"><a href="/" style="color:var(--cream-dim);text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;transition:color 0.2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--cream-dim)'">&#8592; Tamation</a></nav>
+  <nav style="max-width:900px;margin:0 auto;padding:20px 32px 12px;"><a href="/" style="color:var(--cream-dim);text-decoration:none;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;transition:color 0.2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--cream-dim)'">&#8592; Tamation</a></nav>
   <div id="root"></div>
   <script type="text/babel">
     const { useState, useMemo, useEffect } = React;
 
-    function CashbackComparison({ 
+    function CashbackComparison({
       totalCardSpend, totalPoints, totalOpportunityCost, signOnBonusPoints,
       signOnBonusCost, purchasedPointsCost, redemptionCentsPerPoint,
-      weightedCostBasis, opportunityCostRate, formatNumber, formatCents 
+      weightedCostBasis, opportunityCostRate, formatNumber, formatCents
     }) {
       const [cashbackRate, setCashbackRate] = useState(opportunityCostRate || 2);
       const [pointValuation, setPointValuation] = useState(0.5);
@@ -318,10 +318,10 @@
           <div className="section-label">Analysis</div>
           <div className="section-title">Cashback Comparison</div>
           <p className="section-desc">How does your points strategy stack up against a flat cashback card?</p>
-          
+
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:24}} className="stats-grid-2">
             <div>
-              <label style={{fontFamily:"'JetBrains Mono',monospace",fontSize:10,letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--cream-dim)',display:'block',marginBottom:6}}>Cashback Rate</label>
+              <label style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--cream-dim)',display:'block',marginBottom:6}}>Cashback Rate</label>
               <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
                 <input type="number" value={cashbackRate || ''} onChange={(e) => setCashbackRate(parseFloat(e.target.value) || 0)} step="0.5" min="0" max="10" className="field-input" style={{width:70,textAlign:'center'}} />
                 <span className="font-mono" style={{color:'var(--cream-dim)',fontSize:13}}>%</span>
@@ -333,7 +333,7 @@
               </div>
             </div>
             <div>
-              <label style={{fontFamily:"'JetBrains Mono',monospace",fontSize:10,letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--cream-dim)',display:'block',marginBottom:6}}>
+              <label style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,letterSpacing:'1.5px',textTransform:'uppercase',color:'var(--cream-dim)',display:'block',marginBottom:6}}>
                 Point Valuation {isUsingRedemptionValue && <span style={{color:'var(--green)',letterSpacing:'normal',textTransform:'none'}}>(from redemption)</span>}
               </label>
               <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
@@ -379,7 +379,7 @@
             <div style={{display:'flex',flexWrap:'wrap',justifyContent:'space-between',alignItems:'center',gap:8}}>
               <div>
                 <span style={{color:'var(--cream-dim)',fontSize:14}}>Break-even: </span>
-                <span className="font-mono" style={{color:'#fff',fontWeight:600}}>{formatCents(comparison.breakEvenCpp)}&#162;/pt</span>
+                <span className="font-mono" style={{color:'var(--cream)',fontWeight:500}}>{formatCents(comparison.breakEvenCpp)}&#162;/pt</span>
               </div>
               <div className="font-mono" style={{fontSize:12}}>
                 {comparison.effectiveValuation > comparison.breakEvenCpp
@@ -476,7 +476,7 @@
         <div style={{maxWidth:860,margin:'0 auto',padding:'0 32px 80px'}}>
           <div className="animate-in" style={{textAlign:'center',padding:'40px 0 48px',borderBottom:'1px solid var(--border)',marginBottom:32}}>
             <div className="font-mono" style={{fontSize:10,letterSpacing:4,textTransform:'uppercase',color:'var(--gold)',marginBottom:12}}>Financial Instrument</div>
-            <h1 className="font-display" style={{fontSize:42,fontWeight:900,color:'#fff',lineHeight:1.1,marginBottom:10,letterSpacing:'-0.5px'}}>Points Cost Basis<br/>Calculator</h1>
+            <h1 className="font-display" style={{fontSize:42,fontWeight:400,color:'var(--cream)',lineHeight:1.1,marginBottom:10,letterSpacing:'-0.5px'}}>Points Cost Basis<br/>Calculator</h1>
             <p style={{color:'var(--cream-dim)',fontSize:16,maxWidth:480,margin:'0 auto',lineHeight:1.6}}>Calculate your true cents-per-point across all acquisition channels</p>
           </div>
 
@@ -515,9 +515,9 @@
                   {calculations.ihgCardData.filter(c => c.pointsEarned > 0).map((cat, i) => (
                     <div key={i} className="result-card-detail">
                       <div className="font-mono" style={{fontSize:10,letterSpacing:1,textTransform:'uppercase',color:'var(--cream-dim)',marginBottom:4}}>{cat.category}</div>
-                      <div className="font-mono" style={{color:'#fff',fontWeight:600,fontSize:15}}>{formatNumber(cat.ihgPoints)} <span style={{fontSize:11,color:'var(--cream-dim)'}}>pts</span></div>
+                      <div className="font-mono" style={{color:'var(--cream)',fontWeight:500,fontSize:15}}>{formatNumber(cat.ihgPoints)} <span style={{fontSize:11,color:'var(--cream-dim)'}}>pts</span></div>
                       <div className="font-mono" style={{fontSize:11,color:'var(--cream-dim)',marginTop:2}}>${formatNumber(cat.impliedSpend)} spend, ${formatNumber(cat.foregoneCashback)} cost</div>
-                      <div className="font-mono" style={{fontSize:14,color:'var(--gold)',fontWeight:600,marginTop:4}}>{formatCents(cat.costBasis)}&#162;/pt</div>
+                      <div className="font-mono" style={{fontSize:14,color:'var(--gold)',fontWeight:500,marginTop:4}}>{formatCents(cat.costBasis)}&#162;/pt</div>
                     </div>
                   ))}
                 </div>
@@ -565,11 +565,11 @@
                 <div className="divider" />
                 <div style={{display:'grid',gridTemplateColumns:'repeat(2, 1fr)',gap:10}} className="stats-grid-2">
                   {calculations.chaseCardData.filter(c => c.pointsEarned > 0).map((cat, i) => (
-                    <div key={i} className="result-card-detail" style={{borderLeft:'2px solid rgba(91,142,201,0.3)'}}>
+                    <div key={i} className="result-card-detail" style={{borderLeft:'2px solid rgba(120,137,164,0.3)'}}>
                       <div className="font-mono" style={{fontSize:10,letterSpacing:1,textTransform:'uppercase',color:'var(--blue)',marginBottom:4}}>{cat.category}</div>
-                      <div className="font-mono" style={{color:'#fff',fontWeight:600,fontSize:14}}>{formatNumber(cat.pointsEarned)} UR &#8594; {formatNumber(cat.ihgPoints)} IHG</div>
+                      <div className="font-mono" style={{color:'var(--cream)',fontWeight:500,fontSize:14}}>{formatNumber(cat.pointsEarned)} UR &#8594; {formatNumber(cat.ihgPoints)} IHG</div>
                       <div className="font-mono" style={{fontSize:11,color:'var(--cream-dim)',marginTop:2}}>${formatNumber(cat.impliedSpend)} spend, ${formatNumber(cat.foregoneCashback)} cost</div>
-                      <div className="font-mono" style={{fontSize:14,color:'var(--gold)',fontWeight:600,marginTop:4}}>{formatCents(cat.costBasis)}&#162;/pt</div>
+                      <div className="font-mono" style={{fontSize:14,color:'var(--gold)',fontWeight:500,marginTop:4}}>{formatCents(cat.costBasis)}&#162;/pt</div>
                     </div>
                   ))}
                 </div>
@@ -618,8 +618,8 @@
             {signOnBonus.points > 0 && (
               <div className="result-card-detail" style={{marginTop:16,display:'inline-block'}}>
                 <div className="font-mono" style={{fontSize:10,letterSpacing:1,textTransform:'uppercase',color:'var(--cream-dim)',marginBottom:4}}>Direct IHG Points</div>
-                <div className="font-mono" style={{color:'#fff',fontWeight:600}}>{formatNumber(signOnBonus.points)} pts</div>
-                <div className="font-mono" style={{fontSize:14,color:'var(--gold)',fontWeight:600,marginTop:4}}>{signOnBonus.attributedCost > 0 ? `${formatCents(calculations.signOnCostBasis)}&#162;/pt` : 'FREE &#8212; 0&#162;/pt'}</div>
+                <div className="font-mono" style={{color:'var(--cream)',fontWeight:500}}>{formatNumber(signOnBonus.points)} pts</div>
+                <div className="font-mono" style={{fontSize:14,color:'var(--gold)',fontWeight:500,marginTop:4}}>{signOnBonus.attributedCost > 0 ? `${formatCents(calculations.signOnCostBasis)}&#162;/pt` : 'FREE &#8212; 0&#162;/pt'}</div>
               </div>
             )}
           </div>
@@ -647,7 +647,7 @@
                     <input type="number" value={purchase.amountPaid || ''} onChange={(e) => updatePurchased(index, 'amountPaid', e.target.value)} placeholder="Paid" className="field-input" />
                   </div>
                   <div style={{display:'flex',justifyContent:'flex-end',alignItems:'center',gap:6}}>
-                    {purchase.pointsReceived > 0 && <span className="font-mono" style={{color:'var(--gold)',fontSize:12,fontWeight:600}}>{formatCents(calculations.purchasedData[index]?.costBasis || 0)}&#162;</span>}
+                    {purchase.pointsReceived > 0 && <span className="font-mono" style={{color:'var(--gold)',fontSize:12,fontWeight:500}}>{formatCents(calculations.purchasedData[index]?.costBasis || 0)}&#162;</span>}
                     {purchasedPoints.length > 1 && <button onClick={() => removePurchase(index)} className="remove-btn">x</button>}
                   </div>
                 </div>
@@ -665,7 +665,7 @@
                 <div className="stat-value" style={{fontSize:17}}>{formatNumber(calculations.totalIhgCardPoints)}</div>
                 <div className="stat-sub">${formatNumber(calculations.totalIhgCardForegone)} cost</div>
               </div>
-              <div className="stat-box" style={{borderLeft:'2px solid rgba(91,142,201,0.3)'}}>
+              <div className="stat-box" style={{borderLeft:'2px solid rgba(120,137,164,0.3)'}}>
                 <div className="stat-label">Chase &#8594; IHG</div>
                 <div className="stat-value" style={{fontSize:17}}>{formatNumber(calculations.totalChaseCardPoints)}</div>
                 <div className="stat-sub">${formatNumber(calculations.totalChaseCardForegone)} cost</div>
@@ -694,7 +694,7 @@
             {calculations.totalPoints > 0 && (
               <div className="cost-basis-hero" style={{marginTop:20}}>
                 <div className="font-mono" style={{fontSize:11,letterSpacing:2,textTransform:'uppercase',color:'var(--gold)',marginBottom:8,position:'relative',zIndex:1}}>Weighted Average Cost Basis</div>
-                <div className="font-display" style={{fontSize:56,fontWeight:900,color:'#fff',lineHeight:1,position:'relative',zIndex:1}}>{formatCents(calculations.weightedCostBasis)}&#162;</div>
+                <div className="font-display" style={{fontSize:56,fontWeight:400,color:'var(--cream)',lineHeight:1,position:'relative',zIndex:1}}>{formatCents(calculations.weightedCostBasis)}&#162;</div>
                 <div className="font-mono" style={{fontSize:13,color:'var(--gold-dim)',marginTop:8,position:'relative',zIndex:1}}>per IHG point</div>
               </div>
             )}
